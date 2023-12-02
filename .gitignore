@@ -1,0 +1,10 @@
+# MAC
+.idea/*
+.DS_Store
+
+# vs code
+.vscode/
+
+# general
+TODO.txt
+**/configs/*
