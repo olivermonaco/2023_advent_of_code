@@ -21,14 +21,20 @@ func CalculatePartOne(input []string) int {
 	return result
 }
 
+// func to find substring, and start index in string from string, given reverse func or regular lambda
+// func to translate int from the substring
+// compare numRuneInStr index to result from first, whichever is lower, use it
+
 func intFromStr(s string) int {
-	firstRune := numRuneInString(s)
+	firstRune, _ := numRuneInStr(s)
 	if firstRune == nil {
 		log.Error().Msgf("couldn't find rune in string: %s", s)
+		panic(s)
 	}
-	lastRune := numRuneInString(reverseString([]rune(s)))
+	lastRune, _ := numRuneInStr(reverseString([]rune(s)))
 	if firstRune == nil {
 		log.Error().Msgf("couldn't find rune in string: %s", reverseString([]rune(s)))
+		panic(s)
 	}
 	runes := []rune{*firstRune, *lastRune}
 	result, err := strconv.Atoi(string(runes))
@@ -50,15 +56,15 @@ func reverseString(s []rune) string {
 
 }
 
-func numRuneInString(s string) *rune {
-	for _, r := range s {
+func numRuneInStr(s string) (*rune, int) {
+	for idx, r := range s {
 		_, err := strconv.Atoi(string(r))
 		if err != nil {
 			continue
 		}
-		return &r
+		return &r, idx
 	}
-	return nil
+	return nil, 0
 }
 
 func ReadFileConstructLines(filename string) []string {
