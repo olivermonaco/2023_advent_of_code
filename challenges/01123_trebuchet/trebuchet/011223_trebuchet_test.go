@@ -22,7 +22,8 @@ func TestTrebuchet(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		actual := Trebuchet(tt.inputFilename)
+		data := ReadFileConstructLines(tt.inputFilename)
+		actual := CalculatePartOne(data)
 		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
 	}
 }

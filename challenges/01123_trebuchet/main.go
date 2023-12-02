@@ -17,6 +17,7 @@ func main() {
 	// Get the absolute path of the current file
 	filename := "puzzle_input.txt"
 	relFilepath := fmt.Sprintf("trebuchet/test_files/%s", filename)
-	result := trebuchet.Trebuchet(relFilepath)
+	data := trebuchet.ReadFileConstructLines(relFilepath)
+	result := trebuchet.CalculatePartOne(data)
 	fmt.Printf("result is %d", result)
 }

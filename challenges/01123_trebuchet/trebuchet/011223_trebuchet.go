@@ -8,35 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Trebuchet(filename string) int {
-	log.Info().Msgf("filename is %s", filename)
-	file, err := os.Open(filename)
-	if err != nil {
-
-		log.Err(err).Msg("Error opening file")
-		return 0
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	var lines []string
-
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	// Check for errors during scanning
-	if err := scanner.Err(); err != nil {
-		log.Err(err).Msg("Error reading file")
-		return 0
-	}
-
-	return CalculateResult(lines)
-
-}
-
-func CalculateResult(input []string) int {
+func CalculatePartOne(input []string) int {
 	var result int
 	for _, s := range input {
 		intResult := intFromStr(s)
@@ -87,4 +59,31 @@ func numRuneInString(s string) *rune {
 		return &r
 	}
 	return nil
+}
+
+func ReadFileConstructLines(filename string) []string {
+	log.Info().Msgf("filename is %s", filename)
+	file, err := os.Open(filename)
+	if err != nil {
+
+		log.Err(err).Msg("Error opening file")
+		return nil
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	var lines []string
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	// Check for errors during scanning
+	if err := scanner.Err(); err != nil {
+		log.Err(err).Msg("Error reading file")
+		return nil
+	}
+	return lines
+
 }
