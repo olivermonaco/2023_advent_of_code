@@ -8,20 +8,21 @@ import (
 
 func TestTrebuchet(t *testing.T) {
 	tests := []struct {
-		input     []string
-		expOutput int
+		inputFilename string
+		expOutput     int
 	}{
 		{
-			input: []string{"1abc2",
-				"pqr3stu8vwx",
-				"a1b2c3d4e5f",
-				"treb7uchet"},
-			expOutput: 77,
+			inputFilename: "test_files/example_input.txt",
+			expOutput:     142,
+		},
+		{
+			inputFilename: "test_files/om_ex1.txt",
+			expOutput:     124,
 		},
 	}
 
 	for _, tt := range tests {
-		actual := Trebuchet(tt.input)
+		actual := Trebuchet(tt.inputFilename)
 		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
 	}
 }
