@@ -1,4 +1,4 @@
-// https://adventofcode.com/2023/day/1
+// https://adventofcode.com/2023/day/2
 package main
 
 import (
@@ -21,8 +21,8 @@ func main() {
 	ctx = log.Logger.WithContext(ctx)
 	// Get the absolute path of the current file
 	filename := "puzzle_input.txt"
-	relFilepath := fmt.Sprintf("trebuchet/test_files/%s", filename)
+	relFilepath := fmt.Sprintf("cube/test_files/%s", filename)
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
-	result := trebuchet.Calculate(data, trebuchet.IntFromStrPartTwo)
+	result := cubes.Calculate(data, trebuchet.IntFromStrPartTwo)
 	fmt.Printf("result is %d", result)
 }

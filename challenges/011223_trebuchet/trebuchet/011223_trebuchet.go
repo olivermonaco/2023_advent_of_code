@@ -42,9 +42,9 @@ func IntFromStrPartOne(s string) int {
 		log.Error().Msgf("couldn't find rune in string: %s", s)
 		panic(s)
 	}
-	lastRune, _ := numRuneInStr(reverseString(s))
+	lastRune, _ := numRuneInStr(ReverseString(s))
 	if firstRune == nil {
-		log.Error().Msgf("couldn't find rune in string: %s", reverseString(s))
+		log.Error().Msgf("couldn't find rune in string: %s", ReverseString(s))
 		panic(s)
 	}
 	runes := []rune{*firstRune, *lastRune}
@@ -61,9 +61,9 @@ func IntFromStrPartTwo(s string) int {
 	if firstRune == nil {
 		log.Error().Msgf("couldn't find rune in string: %s", s)
 	}
-	lastRune, lastRuneIdx := numRuneInStr(reverseString(s))
+	lastRune, lastRuneIdx := numRuneInStr(ReverseString(s))
 	if firstRune == nil {
-		log.Error().Msgf("couldn't find rune in string: %s", reverseString(s))
+		log.Error().Msgf("couldn't find rune in string: %s", ReverseString(s))
 	}
 
 	firstStrMatch, firstStrRepIdx := strRepInStr(s, func(s string) string { return s })
@@ -74,7 +74,7 @@ func IntFromStrPartTwo(s string) int {
 	}
 
 	lastStrMatch, lastStrRepIdx := strRepInStr(
-		reverseString(s), func(s string) string { return reverseString(s) },
+		ReverseString(s), func(s string) string { return ReverseString(s) },
 	)
 	if lastStrRepIdx >= 0 && lastStrRepIdx <= lastRuneIdx {
 		lastRune = kit.Ptr(
@@ -91,7 +91,7 @@ func IntFromStrPartTwo(s string) int {
 	return result
 }
 
-func reverseString(s string) string {
+func ReverseString(s string) string {
 	forwardS := []rune(s)
 
 	var reversed []rune
@@ -163,5 +163,4 @@ func ReadFileConstructLines(filename string) []string {
 		return nil
 	}
 	return lines
-
 }
