@@ -2,11 +2,13 @@ package trebuchet
 
 import (
 	"bufio"
+	"context"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,7 +25,13 @@ var strRepToInt = map[string]int{
 	"nine":  9,
 }
 
-func Calculate(input []string, partFunc func(string) int) int {
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
+
+func Calculate(ctx context.Context, input []string, partFunc func(string) int) int {
+	_ = log.Logger.WithContext(ctx)
+
 	var result int
 	for _, s := range input {
 		intResult := partFunc(s)

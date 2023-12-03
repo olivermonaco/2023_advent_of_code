@@ -1,12 +1,15 @@
 package trebuchet
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTrebuchet_PartOne(t *testing.T) {
+	ctx := context.Background()
+
 	tests := []struct {
 		inputFilename string
 		expOutput     int
@@ -23,12 +26,13 @@ func TestTrebuchet_PartOne(t *testing.T) {
 
 	for _, tt := range tests {
 		data := ReadFileConstructLines(tt.inputFilename)
-		actual := Calculate(data, IntFromStrPartOne)
+		actual := Calculate(ctx, data, IntFromStrPartOne)
 		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
 	}
 }
 
 func TestTrebuchet_PartTwo(t *testing.T) {
+	ctx := context.Background()
 	tests := []struct {
 		inputFilename string
 		expOutput     int
@@ -45,7 +49,7 @@ func TestTrebuchet_PartTwo(t *testing.T) {
 
 	for _, tt := range tests {
 		data := ReadFileConstructLines(tt.inputFilename)
-		actual := Calculate(data, IntFromStrPartTwo)
+		actual := Calculate(ctx, data, IntFromStrPartTwo)
 		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
 	}
 }

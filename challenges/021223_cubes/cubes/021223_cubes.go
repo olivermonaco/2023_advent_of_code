@@ -3,11 +3,40 @@ package cubes
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+var CompareTurn = Turn{
+	Cubes: map[Color]ColoredCubes[Color]{
+		Red{}: {
+			Cubes: Cubes{
+				Count: 12,
+			},
+			Color: Red{},
+		},
+		Blue{}: {
+			Cubes: Cubes{
+				Count: 13,
+			},
+			Color: Blue{},
+		},
+		Green{}: {
+			Cubes: Cubes{
+				Count: 14,
+			},
+			Color: Green{},
+		},
+	},
+}
+
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
 
 type Color interface {
 	ShowColorStr() string
@@ -41,7 +70,7 @@ type ColoredCubes[T Color] struct {
 }
 
 func (cc ColoredCubes[T]) CompareCube(other ColoredCubes[T]) *ColoredCubes[T] {
-	if cc.Count > other.Count {
+	if cc.Count < other.Count {
 		return &other
 	}
 	return nil
@@ -50,11 +79,19 @@ func (cc ColoredCubes[T]) CompareCube(other ColoredCubes[T]) *ColoredCubes[T] {
 func coloredCubesFromColor[T Color](cubes Cubes, c T) ColoredCubes[T] {
 	return ColoredCubes[T]{
 		Cubes: cubes,
+		Color: c,
 	}
 }
 
 type Turn struct {
 	Cubes map[Color]ColoredCubes[Color]
+}
+
+func (t *Turn) createColorMaps() {
+	t.Cubes = make(map[Color]ColoredCubes[Color])
+	for _, color := range []Color{Red{}, Blue{}, Green{}} {
+		t.Cubes[color] = ColoredCubes[Color]{Color: color}
+	}
 }
 
 func (t Turn) AddToTurn(cc ColoredCubes[Color]) {
@@ -65,8 +102,6 @@ type Game struct {
 	ID    int
 	Turns []Turn
 }
-
-// func ()
 
 func (G Game) ImpossibleTurns(compareTurn Turn) []Turn {
 	var impossibleTurns []Turn
@@ -120,7 +155,8 @@ func toColoredCube(s string) ColoredCubes[Color] {
 	case "green":
 		c = Green{}
 	}
-	return coloredCubesFromColor(cubes, c)
+	cc := coloredCubesFromColor(cubes, c)
+	return cc
 }
 
 func extractTurns(line string) []Turn {
@@ -129,6 +165,7 @@ func extractTurns(line string) []Turn {
 	turnsStr := strings.Split(line, ";")
 	for _, turn := range turnsStr {
 		var t Turn
+		t.createColorMaps()
 		cubes := strings.Split(turn, ",")
 		for _, cube := range cubes {
 			cc := toColoredCube(cube)
@@ -147,19 +184,20 @@ func toGame(line string) Game {
 	return g
 }
 
-func (cc ColoredCubes[T]) LogInvalidCube(ctx context.Context, other ColoredCubes[T]) {
+func (compareCubes ColoredCubes[T]) LogInvalidCube(ctx context.Context, other ColoredCubes[T]) {
 	l := log.Ctx(ctx).With().Caller().Logger()
 
-	if impossibleCube := cc.CompareCube(other); impossibleCube != nil {
+	if impossibleCube := compareCubes.CompareCube(other); impossibleCube != nil {
 		l.Error().
 			Int(
-				fmt.Sprintf("%s_cube_count", cc.Color.ShowColorStr()),
+				fmt.Sprintf("%s_cube_count", compareCubes.Color.ShowColorStr()),
 				other.Cubes.Count,
 			).Msg("impossible cube count")
 	}
 }
 
 func Calculate(ctx context.Context, input []string, compareTurn Turn) int {
+	ctx = log.Logger.WithContext(ctx)
 	l := log.Ctx(ctx).With().Caller().Logger()
 
 	var result int
@@ -172,7 +210,8 @@ func Calculate(ctx context.Context, input []string, compareTurn Turn) int {
 				Msgf("Game %d not possible", game.ID)
 			for _, turn := range impossibleTurns {
 				for color, cc := range turn.Cubes {
-					compareTurn.Cubes[color].LogInvalidCube(ctx, cc)
+					compareCubes := compareTurn.Cubes[color]
+					compareCubes.LogInvalidCube(ctx, cc)
 				}
 			}
 			continue
