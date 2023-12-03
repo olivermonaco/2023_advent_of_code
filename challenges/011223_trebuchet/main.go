@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/olivermonaco/2023_advent_of_code/challenges/01123_trebuchet/trebuchet"
+	"github.com/olivermonaco/2023_advent_of_code/challenges/011223_trebuchet/trebuchet"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
