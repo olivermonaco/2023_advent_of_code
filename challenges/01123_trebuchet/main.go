@@ -18,6 +18,6 @@ func main() {
 	filename := "puzzle_input.txt"
 	relFilepath := fmt.Sprintf("trebuchet/test_files/%s", filename)
 	data := trebuchet.ReadFileConstructLines(relFilepath)
-	result := trebuchet.CalculatePartOne(data)
+	result := trebuchet.Calculate(data, trebuchet.IntFromStrPartOne)
 	fmt.Printf("result is %d", result)
 }

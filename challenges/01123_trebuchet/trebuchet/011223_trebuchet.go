@@ -4,14 +4,29 @@ import (
 	"bufio"
 	"os"
 	"strconv"
+	"strings"
 
+	"github.com/olivermonaco/2023_advent_of_code/kit"
 	"github.com/rs/zerolog/log"
 )
 
-func CalculatePartOne(input []string) int {
+var strRepToInt = map[string]int{
+	"zero":  0,
+	"one":   1,
+	"two":   2,
+	"three": 3,
+	"four":  4,
+	"five":  5,
+	"six":   6,
+	"seven": 7,
+	"eight": 8,
+	"nine":  9,
+}
+
+func Calculate(input []string, partFunc func(string) int) int {
 	var result int
 	for _, s := range input {
-		intResult := intFromStr(s)
+		intResult := partFunc(s)
 		result += intResult
 		log.Info().
 			Str("processed_str", s).
@@ -21,19 +36,15 @@ func CalculatePartOne(input []string) int {
 	return result
 }
 
-// func to find substring, and start index in string from string, given reverse func or regular lambda
-// func to translate int from the substring
-// compare numRuneInStr index to result from first, whichever is lower, use it
-
-func intFromStr(s string) int {
+func IntFromStrPartOne(s string) int {
 	firstRune, _ := numRuneInStr(s)
 	if firstRune == nil {
 		log.Error().Msgf("couldn't find rune in string: %s", s)
 		panic(s)
 	}
-	lastRune, _ := numRuneInStr(reverseString([]rune(s)))
+	lastRune, _ := numRuneInStr(reverseString(s))
 	if firstRune == nil {
-		log.Error().Msgf("couldn't find rune in string: %s", reverseString([]rune(s)))
+		log.Error().Msgf("couldn't find rune in string: %s", reverseString(s))
 		panic(s)
 	}
 	runes := []rune{*firstRune, *lastRune}
@@ -45,11 +56,48 @@ func intFromStr(s string) int {
 	return result
 }
 
-func reverseString(s []rune) string {
+func IntFromStrPartTwo(s string) int {
+	firstRune, firstRuneIdx := numRuneInStr(s)
+	if firstRune == nil {
+		log.Error().Msgf("couldn't find rune in string: %s", s)
+	}
+	lastRune, lastRuneIdx := numRuneInStr(reverseString(s))
+	if firstRune == nil {
+		log.Error().Msgf("couldn't find rune in string: %s", reverseString(s))
+	}
+
+	firstStrMatch, firstStrRepIdx := strRepInStr(s, func(s string) string { return s })
+	if firstStrRepIdx >= 0 && firstStrRepIdx <= firstRuneIdx {
+		firstRune = kit.Ptr(
+			runeFromInt(firstStrMatch),
+		)
+	}
+
+	lastStrMatch, lastStrRepIdx := strRepInStr(
+		reverseString(s), func(s string) string { return reverseString(s) },
+	)
+	if lastStrRepIdx >= 0 && lastStrRepIdx <= lastRuneIdx {
+		lastRune = kit.Ptr(
+			runeFromInt(lastStrMatch),
+		)
+	}
+
+	runes := []rune{*firstRune, *lastRune}
+	result, err := strconv.Atoi(string(runes))
+	if err != nil {
+		log.Err(err).Msg("error")
+		return 0
+	}
+	return result
+}
+
+func reverseString(s string) string {
+	forwardS := []rune(s)
+
 	var reversed []rune
 
-	for i := len(s) - 1; i > -1; i -= 1 {
-		reversed = append(reversed, s[i])
+	for i := len(forwardS) - 1; i > -1; i -= 1 {
+		reversed = append(reversed, forwardS[i])
 	}
 	reversedS := string(reversed)
 	return reversedS
@@ -65,6 +113,30 @@ func numRuneInStr(s string) (*rune, int) {
 		return &r, idx
 	}
 	return nil, 0
+}
+
+func strRepInStr(s string, compare_direction func(string) string) (int, int) {
+	minIdx := len(s) // len of bytes, but that's fine, just need it to be bigger than the number of runes
+	returnInt := -1
+	for strRep, v := range strRepToInt {
+		strRep = compare_direction(strRep)
+		if idx := strings.Index(s, strRep); idx >= 0 {
+			if idx < minIdx {
+				minIdx = idx
+				returnInt = v
+			}
+		}
+	}
+	if returnInt == -1 {
+		return -1, -1
+	}
+	return returnInt, minIdx
+}
+
+// not really safe or checking anything, but moving fast
+func runeFromInt(i int) rune {
+	numRep := strconv.Itoa(i)
+	return []rune(numRep)[0]
 }
 
 func ReadFileConstructLines(filename string) []string {

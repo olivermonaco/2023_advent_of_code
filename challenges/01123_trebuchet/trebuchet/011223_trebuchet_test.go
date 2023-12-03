@@ -6,24 +6,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTrebuchet(t *testing.T) {
+func TestTrebuchet_PartOne(t *testing.T) {
 	tests := []struct {
 		inputFilename string
 		expOutput     int
 	}{
 		{
-			inputFilename: "test_files/example_input.txt",
+			inputFilename: "test_files/part_one/example_input.txt",
 			expOutput:     142,
 		},
 		{
-			inputFilename: "test_files/om_ex1.txt",
+			inputFilename: "test_files/part_one/om_ex1.txt",
 			expOutput:     124,
 		},
 	}
 
 	for _, tt := range tests {
 		data := ReadFileConstructLines(tt.inputFilename)
-		actual := CalculatePartOne(data)
+		actual := Calculate(data, IntFromStrPartOne)
+		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
+	}
+}
+
+func TestTrebuchet_PartTwo(t *testing.T) {
+	tests := []struct {
+		inputFilename string
+		expOutput     int
+	}{
+		{
+			inputFilename: "test_files/part_two/example_input.txt",
+			expOutput:     281,
+		},
+	}
+
+	for _, tt := range tests {
+		data := ReadFileConstructLines(tt.inputFilename)
+		actual := Calculate(data, IntFromStrPartTwo)
 		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
 	}
 }
