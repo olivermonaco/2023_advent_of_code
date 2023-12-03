@@ -37,6 +37,10 @@ func TestTrebuchet_PartTwo(t *testing.T) {
 			inputFilename: "test_files/part_two/example_input.txt",
 			expOutput:     281,
 		},
+		{
+			inputFilename: "test_files/part_two/om_ex1.txt",
+			expOutput:     231,
+		},
 	}
 
 	for _, tt := range tests {
