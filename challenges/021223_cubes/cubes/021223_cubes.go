@@ -21,13 +21,13 @@ var CompareTurn = Turn{
 		},
 		Blue{}: {
 			Cubes: Cubes{
-				Count: 13,
+				Count: 14,
 			},
 			Color: Blue{},
 		},
 		Green{}: {
 			Cubes: Cubes{
-				Count: 14,
+				Count: 13,
 			},
 			Color: Green{},
 		},
@@ -69,6 +69,13 @@ type ColoredCubes[T Color] struct {
 	Color T
 }
 
+func (cc ColoredCubes[Color]) MarshalZerologObject(e *zerolog.Event) {
+	if cc.Count > 0 {
+		e.Str("cube_color", cc.Color.ShowColorStr()).
+			Int("cubes_count", cc.Count)
+	}
+}
+
 func (cc ColoredCubes[T]) CompareCube(other ColoredCubes[T]) *ColoredCubes[T] {
 	if cc.Count < other.Count {
 		return &other
@@ -84,8 +91,11 @@ func coloredCubesFromColor[T Color](cubes Cubes, c T) ColoredCubes[T] {
 }
 
 type Turn struct {
+	Index int
 	Cubes map[Color]ColoredCubes[Color]
 }
+
+type Turns []Turn
 
 func (t *Turn) createColorMaps() {
 	t.Cubes = make(map[Color]ColoredCubes[Color])
@@ -98,14 +108,34 @@ func (t Turn) AddToTurn(cc ColoredCubes[Color]) {
 	t.Cubes[cc.Color] = cc
 }
 
+func (t Turn) MarshalZerologObject(e *zerolog.Event) {
+	e.Int("turn_idx", t.Index)
+
+	for _, cc := range t.Cubes {
+		cc.MarshalZerologObject(e)
+	}
+}
+
+func (tt Turns) MarshalZerologArray(a *zerolog.Array) {
+	for _, t := range tt {
+		a.Object(t)
+	}
+}
+
 type Game struct {
 	ID    int
 	Turns []Turn
 }
 
-func (G Game) ImpossibleTurns(compareTurn Turn) []Turn {
-	var impossibleTurns []Turn
-	for _, turn := range G.Turns {
+func (g Game) MarshalZerologObject(e *zerolog.Event) {
+	e.Int("game_id", g.ID)
+	turns := Turns(g.Turns)
+	e.Array("turns", turns)
+}
+
+func (g Game) ImpossibleTurns(compareTurn Turn) Turns {
+	var impossibleTurns Turns
+	for _, turn := range g.Turns {
 		for color, cubes := range turn.Cubes {
 			if impossibleCubes := compareTurn.Cubes[color].CompareCube(cubes); impossibleCubes != nil {
 				impossibleTurns = append(impossibleTurns, turn)
@@ -163,9 +193,10 @@ func extractTurns(line string) []Turn {
 	var turns []Turn
 
 	turnsStr := strings.Split(line, ";")
-	for _, turn := range turnsStr {
+	for idx, turn := range turnsStr {
 		var t Turn
 		t.createColorMaps()
+		t.Index = idx
 		cubes := strings.Split(turn, ",")
 		for _, cube := range cubes {
 			cc := toColoredCube(cube)
@@ -202,11 +233,14 @@ func Calculate(ctx context.Context, input []string, compareTurn Turn) int {
 
 	var result int
 	for _, s := range input {
+		log.Info().Str("input_string", s).Msg("")
 		game := toGame(s)
 		if impossibleTurns := game.ImpossibleTurns(compareTurn); len(impossibleTurns) > 0 {
-			// just for logging purposes
 			l.Error().
 				Str("processed_str", s).
+				Int("game_id", game.ID).
+				Array("impossible_turns", impossibleTurns).
+				Int("result", result).
 				Msgf("Game %d not possible", game.ID)
 			for _, turn := range impossibleTurns {
 				for color, cc := range turn.Cubes {
@@ -218,8 +252,9 @@ func Calculate(ctx context.Context, input []string, compareTurn Turn) int {
 		}
 		result += game.ID
 		log.Info().
-			Int("game_id", game.ID).
+			Object("game", game).
 			Int("updated_result", result).Msg("valid game")
+		fmt.Println(result)
 	}
 	return result
 }
