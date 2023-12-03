@@ -108,6 +108,18 @@ func (t Turn) AddToTurn(cc ColoredCubes[Color]) {
 	t.Cubes[cc.Color] = cc
 }
 
+func (t Turn) CalculateCountPowers() int {
+	var result int
+	for _, cc := range t.Cubes {
+		if result == 0 {
+			result = cc.Count
+			continue
+		}
+		result *= cc.Count
+	}
+	return result
+}
+
 func (t Turn) MarshalZerologObject(e *zerolog.Event) {
 	e.Int("turn_idx", t.Index)
 
@@ -143,6 +155,20 @@ func (g Game) ImpossibleTurns(compareTurn Turn) Turns {
 		}
 	}
 	return impossibleTurns
+}
+
+func (g Game) MinCubesColor() Turn {
+	var minCubesTurn Turn
+	minCubesTurn.createColorMaps()
+
+	for _, turn := range g.Turns {
+		for color, cc := range turn.Cubes {
+			if minCubesTurn.Cubes[color].Count < cc.Count {
+				minCubesTurn.Cubes[color] = cc
+			}
+		}
+	}
+	return minCubesTurn
 }
 
 func extractGameIDTurns(s string) (int, string) {
@@ -227,7 +253,7 @@ func (compareCubes ColoredCubes[T]) LogInvalidCube(ctx context.Context, other Co
 	}
 }
 
-func Calculate(ctx context.Context, input []string, compareTurn Turn) int {
+func CalculatePartOne(ctx context.Context, input []string, compareTurn Turn) int {
 	ctx = log.Logger.WithContext(ctx)
 	l := log.Ctx(ctx).With().Caller().Logger()
 
@@ -254,6 +280,26 @@ func Calculate(ctx context.Context, input []string, compareTurn Turn) int {
 		log.Info().
 			Object("game", game).
 			Int("updated_result", result).Msg("valid game")
+		fmt.Println(result)
+	}
+	return result
+}
+
+func CalculatePartTwo(ctx context.Context, input []string) int {
+	ctx = log.Logger.WithContext(ctx)
+	l := log.Ctx(ctx).With().Caller().Logger()
+
+	var result int
+	for _, s := range input {
+		log.Info().Str("input_string", s).Msg("")
+		game := toGame(s)
+		minCubesForGame := game.MinCubesColor()
+		powerResult := minCubesForGame.CalculateCountPowers()
+		result += powerResult
+		l.Info().
+			Object("min_cubes_for_game", minCubesForGame).
+			Int("power_result", powerResult).
+			Msg("")
 		fmt.Println(result)
 	}
 	return result

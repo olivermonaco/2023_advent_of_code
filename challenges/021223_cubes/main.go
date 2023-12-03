@@ -16,6 +16,7 @@ func main() {
 	relFilepath := fmt.Sprintf("cubes/%s", filename)
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
 
-	result := cubes.Calculate(ctx, data, cubes.CompareTurn)
+	// result := cubes.CalculatePartOne(ctx, data, cubes.CompareTurn)
+	result := cubes.CalculatePartTwo(ctx, data)
 	fmt.Printf("result is %d", result)
 }

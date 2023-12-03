@@ -35,7 +35,31 @@ func TestCubes_PartOne(t *testing.T) {
 
 	for _, tt := range tests {
 		data := kit.ReadFileConstructLines(ctx, tt.inputFilename)
-		actual := Calculate(ctx, data, tt.compareTurn)
+		actual := CalculatePartOne(ctx, data, tt.compareTurn)
+		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
+	}
+}
+
+func TestCubes_PartTwo(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []struct {
+		inputFilename string
+		expOutput     int
+	}{
+		{
+			inputFilename: "test_files/part_two/example_input.txt",
+			expOutput:     2286,
+		},
+		{
+			inputFilename: "test_files/part_two/om_ex1.txt",
+			expOutput:     6130,
+		},
+	}
+
+	for _, tt := range tests {
+		data := kit.ReadFileConstructLines(ctx, tt.inputFilename)
+		actual := CalculatePartTwo(ctx, data)
 		assert.Equalf(t, tt.expOutput, actual, "inequal expected:%d\nand actual:\n%d")
 	}
 }
