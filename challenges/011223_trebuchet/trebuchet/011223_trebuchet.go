@@ -42,9 +42,9 @@ func IntFromStrPartOne(s string) int {
 		log.Error().Msgf("couldn't find rune in string: %s", s)
 		panic(s)
 	}
-	lastRune, _ := numRuneInStr(ReverseString(s))
+	lastRune, _ := numRuneInStr(kit.ReverseString(s))
 	if firstRune == nil {
-		log.Error().Msgf("couldn't find rune in string: %s", ReverseString(s))
+		log.Error().Msgf("couldn't find rune in string: %s", kit.ReverseString(s))
 		panic(s)
 	}
 	runes := []rune{*firstRune, *lastRune}
@@ -61,9 +61,9 @@ func IntFromStrPartTwo(s string) int {
 	if firstRune == nil {
 		log.Error().Msgf("couldn't find rune in string: %s", s)
 	}
-	lastRune, lastRuneIdx := numRuneInStr(ReverseString(s))
+	lastRune, lastRuneIdx := numRuneInStr(kit.ReverseString(s))
 	if firstRune == nil {
-		log.Error().Msgf("couldn't find rune in string: %s", ReverseString(s))
+		log.Error().Msgf("couldn't find rune in string: %s", kit.ReverseString(s))
 	}
 
 	firstStrMatch, firstStrRepIdx := strRepInStr(s, func(s string) string { return s })
@@ -74,7 +74,7 @@ func IntFromStrPartTwo(s string) int {
 	}
 
 	lastStrMatch, lastStrRepIdx := strRepInStr(
-		ReverseString(s), func(s string) string { return ReverseString(s) },
+		kit.ReverseString(s), func(s string) string { return kit.ReverseString(s) },
 	)
 	if lastStrRepIdx >= 0 && lastStrRepIdx <= lastRuneIdx {
 		lastRune = kit.Ptr(
@@ -89,19 +89,6 @@ func IntFromStrPartTwo(s string) int {
 		return 0
 	}
 	return result
-}
-
-func ReverseString(s string) string {
-	forwardS := []rune(s)
-
-	var reversed []rune
-
-	for i := len(forwardS) - 1; i > -1; i -= 1 {
-		reversed = append(reversed, forwardS[i])
-	}
-	reversedS := string(reversed)
-	return reversedS
-
 }
 
 func numRuneInStr(s string) (*rune, int) {
