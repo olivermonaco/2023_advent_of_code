@@ -2,8 +2,10 @@ package gear_ratios
 
 import (
 	"context"
+	"strconv"
 	"unicode"
 
+	"github.com/olivermonaco/2023_advent_of_code/kit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -22,7 +24,9 @@ func CalculatePartTwo(ctx context.Context, input []string) int {
 		if i != len(input)-1 {
 			neighborLines = append(neighborLines, input[i+1])
 		}
+		result += calculatePartTwoLineSum(ctx, s, neighborLines)
 	}
+	return result
 }
 
 func neighborDigit(char rune) *rune {
@@ -32,10 +36,28 @@ func neighborDigit(char rune) *rune {
 	return nil
 }
 
+func getCompleteNumstr(runesStr []rune, idxStart, stopIdx int) string {
+	var num []rune
+	for i := idxStart + 1; i <= len(runesStr); i += 1 {
+		if !unicode.IsDigit(runesStr[i]) || i == stopIdx {
+			break
+		}
+		num = append(num, runesStr[i])
+	}
+
+	for i := idxStart - 1; i <= 0; i -= 1 {
+		if !unicode.IsDigit(runesStr[i]) || i == stopIdx {
+			break
+		}
+		num = append([]rune{runesStr[i]}, runesStr[i])
+	}
+	return string(num)
+}
+
 func getNeighborIdxs(
 	runesNeighborLine []rune,
 	lineIdxToPositionIdx []linePositionIdx,
-	lineIdx, charIdx int,
+	charIdx int,
 ) []linePositionIdx {
 	var lPIdxs []linePositionIdx
 
@@ -45,7 +67,7 @@ func getNeighborIdxs(
 			lPIdxs = append(
 				lPIdxs,
 				linePositionIdx{
-					lineIdx:     lineIdx,
+					line:        &runesNeighborLine,
 					positionIdx: -1,
 				},
 			)
@@ -58,7 +80,7 @@ func getNeighborIdxs(
 			lPIdxs = append(
 				lPIdxs,
 				linePositionIdx{
-					lineIdx:     lineIdx,
+					line:        &runesNeighborLine,
 					positionIdx: 1,
 				},
 			)
@@ -70,7 +92,7 @@ func getNeighborIdxs(
 		lPIdxs = append(
 			lPIdxs,
 			linePositionIdx{
-				lineIdx:     lineIdx,
+				line:        &runesNeighborLine,
 				positionIdx: 0,
 			},
 		)
@@ -91,7 +113,7 @@ func getNeighborIdxs(
 }
 
 type linePositionIdx struct {
-	lineIdx     int
+	line        *[]rune
 	positionIdx int
 }
 
@@ -100,7 +122,11 @@ func calculatePartTwoLineSum(
 	currentLine string,
 	neighborLines []string,
 ) int {
+	l := log.Ctx(ctx).With().Logger()
 	runesInStr := []rune(currentLine)
+
+	var lineTotal int
+
 	for idx, char := range runesInStr {
 		if char != GEAR_CHAR {
 			continue
@@ -113,7 +139,7 @@ func calculatePartTwoLineSum(
 				lPIdxs = append(
 					lPIdxs,
 					linePositionIdx{
-						lineIdx:     -1,
+						line:        kit.Ptr([]rune(currentLine)),
 						positionIdx: -1,
 					},
 				)
@@ -126,21 +152,20 @@ func calculatePartTwoLineSum(
 				lPIdxs = append(
 					lPIdxs,
 					linePositionIdx{
-						lineIdx:     -1,
+						line:        kit.Ptr([]rune(currentLine)),
 						positionIdx: 1,
 					},
 				)
 			}
 		}
 
-		for neighborLineIdx, neighborLine := range neighborLines {
+		for _, neighborLine := range neighborLines {
 			neighborLineRunes := []rune(neighborLine)
 			lPIdxs = append(
 				lPIdxs,
 				getNeighborIdxs(
 					neighborLineRunes,
 					lPIdxs,
-					neighborLineIdx,
 					idx,
 				)...,
 			)
@@ -149,6 +174,28 @@ func calculatePartTwoLineSum(
 			// too many adjacent digits
 			continue
 		}
-		// TODO: Left off here, navigate out for each digit
+		nums := make([]int, 0, 2)
+		for _, lineIdxPositionIdx := range lPIdxs {
+			numStr := getCompleteNumstr(
+				*lineIdxPositionIdx.line,
+				lineIdxPositionIdx.positionIdx,
+				idx,
+			)
+			num, err := strconv.Atoi(numStr)
+			if err != nil {
+				panic(numStr)
+			}
+			nums = append(nums, num)
+		}
+		if len(nums) != 2 {
+			l.Error().Ints("nums", nums).Msg("")
+			panic(nums)
+		}
+		gearTotal := 1
+		for _, num := range nums {
+			gearTotal *= num
+		}
+		lineTotal += gearTotal
 	}
+	return lineTotal
 }

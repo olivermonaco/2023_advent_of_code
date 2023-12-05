@@ -16,6 +16,7 @@ func main() {
 	relFilepath := fmt.Sprintf("gear_ratios/%s", filename)
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
 
-	result := gear_ratios.CalculatePartOne(ctx, data)
+	// result := gear_ratios.CalculatePartOne(ctx, data)
+	result := gear_ratios.CalculatePartTwo(ctx, data)
 	fmt.Printf("result is %d", result)
 }
