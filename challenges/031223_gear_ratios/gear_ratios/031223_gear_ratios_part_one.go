@@ -30,7 +30,7 @@ func CalculatePartOne(ctx context.Context, input []string) int {
 }
 
 // non nil from this means the neighbor character is valid
-func validNeighborChar(char rune) *rune {
+func validNeighborCharPartOne(char rune) *rune {
 	if char != INVALID_CHAR && !unicode.IsDigit(char) {
 		return &char
 	}
@@ -42,7 +42,7 @@ func validCharFromNeighborLines(otherLine string, charRangeStart, charRangeEnd i
 	runesInStr := []rune(otherLine)
 
 	if charRangeStart > 0 {
-		validRune := validNeighborChar(runesInStr[charRangeStart-1])
+		validRune := validNeighborCharPartOne(runesInStr[charRangeStart-1])
 		if validRune != nil {
 			return validRune
 		}
@@ -52,7 +52,7 @@ func validCharFromNeighborLines(otherLine string, charRangeStart, charRangeEnd i
 		if i == len(runesInStr) {
 			break
 		}
-		validRune := validNeighborChar(runesInStr[i])
+		validRune := validNeighborCharPartOne(runesInStr[i])
 		if validRune != nil {
 			return validRune
 		}
@@ -69,11 +69,7 @@ func convertNumStr(numStr string) int {
 	return num
 }
 
-// func processNumber
-
 // two pointer / sliding window to grab numbers in a row, then compare neighbors
-// below for iterating through strings by rune
-// https://gobyexample.com/strings-and-runes#:~:text=To%20count%20how%20many%20runes,this%20count%20may%20be%20surprising.
 func calculatePartOneLineSum(
 	ctx context.Context,
 	currentLine string,
@@ -106,7 +102,7 @@ func calculatePartOneLineSum(
 		numStrEndIdx = &idx
 
 		if idx != len(currentLine)-1 {
-			if validNextChar := validNeighborChar(runesInStr[idx+1]); validNextChar != nil {
+			if validNextChar := validNeighborCharPartOne(runesInStr[idx+1]); validNextChar != nil {
 				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
 				totalForLine += convertNumStr(numStr)
 				l.Info().
@@ -121,7 +117,7 @@ func calculatePartOneLineSum(
 		}
 
 		if prevChar != nil {
-			if validPrevChar := validNeighborChar(*prevChar); validPrevChar != nil {
+			if validPrevChar := validNeighborCharPartOne(*prevChar); validPrevChar != nil {
 				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
 				totalForLine += convertNumStr(numStr)
 				numStrStartIdx = nil
