@@ -36,20 +36,20 @@ func neighborDigit(char rune) *rune {
 	return nil
 }
 
-func getCompleteNumstr(runesStr []rune, idxStart, stopIdx int) string {
+func getCompleteNumstr(runesStr []rune, idxStart int) string {
 	var num []rune
-	for i := idxStart + 1; i <= len(runesStr); i += 1 {
-		if !unicode.IsDigit(runesStr[i]) || i == stopIdx {
+	for i := idxStart; i <= len(runesStr)-1; i += 1 {
+		if !unicode.IsDigit(runesStr[i]) {
 			break
 		}
 		num = append(num, runesStr[i])
 	}
 
-	for i := idxStart - 1; i <= 0; i -= 1 {
-		if !unicode.IsDigit(runesStr[i]) || i == stopIdx {
+	for i := idxStart - 1; i >= 0; i -= 1 {
+		if !unicode.IsDigit(runesStr[i]) {
 			break
 		}
-		num = append([]rune{runesStr[i]}, runesStr[i])
+		num = append([]rune{runesStr[i]}, num...)
 	}
 	return string(num)
 }
@@ -59,7 +59,7 @@ func getNeighborIdxs(
 	lineIdxToPositionIdx []linePositionIdx,
 	charIdx int,
 ) []linePositionIdx {
-	var lPIdxs []linePositionIdx
+	lPIdxs := make([]linePositionIdx, 0, 3)
 
 	if charIdx != 0 {
 		prevDigit := neighborDigit(runesNeighborLine[charIdx-1])
@@ -75,7 +75,7 @@ func getNeighborIdxs(
 	}
 
 	if charIdx != len(runesNeighborLine)-1 {
-		next := neighborDigit(runesNeighborLine[charIdx-1])
+		next := neighborDigit(runesNeighborLine[charIdx+1])
 		if next != nil {
 			lPIdxs = append(
 				lPIdxs,
@@ -97,7 +97,7 @@ func getNeighborIdxs(
 			},
 		)
 	}
-	if len(lPIdxs) == 1 {
+	if len(lPIdxs) <= 1 {
 		return lPIdxs
 	}
 	if lPIdxs[len(lPIdxs)-1].positionIdx-lPIdxs[0].positionIdx > 1 {
@@ -109,7 +109,8 @@ func getNeighborIdxs(
 		// prev and next idxs have digits, but not the middle. counts as 2
 		return []linePositionIdx{lPIdxs[0], lPIdxs[len(lPIdxs)-1]}
 	}
-	return []linePositionIdx{}
+	// two in a row, so just need to return one of them
+	return []linePositionIdx{lPIdxs[0]}
 }
 
 type linePositionIdx struct {
@@ -122,7 +123,7 @@ func calculatePartTwoLineSum(
 	currentLine string,
 	neighborLines []string,
 ) int {
-	l := log.Ctx(ctx).With().Logger()
+	// l := log.Ctx(ctx).With().Logger()
 	runesInStr := []rune(currentLine)
 
 	var lineTotal int
@@ -178,9 +179,11 @@ func calculatePartTwoLineSum(
 		for _, lineIdxPositionIdx := range lPIdxs {
 			numStr := getCompleteNumstr(
 				*lineIdxPositionIdx.line,
-				lineIdxPositionIdx.positionIdx,
-				idx,
+				idx+lineIdxPositionIdx.positionIdx,
 			)
+			if numStr == "" {
+				continue
+			}
 			num, err := strconv.Atoi(numStr)
 			if err != nil {
 				panic(numStr)
@@ -188,8 +191,7 @@ func calculatePartTwoLineSum(
 			nums = append(nums, num)
 		}
 		if len(nums) != 2 {
-			l.Error().Ints("nums", nums).Msg("")
-			panic(nums)
+			continue
 		}
 		gearTotal := 1
 		for _, num := range nums {
