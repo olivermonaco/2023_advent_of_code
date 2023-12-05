@@ -70,7 +70,7 @@ func validCharFromNeighborLines(otherLine string, charRangeStart, charRangeEnd i
 	return nil
 }
 
-func convertNumStrAddSum(numStr string) int {
+func convertNumStr(numStr string) int {
 	num, err := strconv.Atoi(numStr)
 	if err != nil {
 		panic(err)
@@ -124,11 +124,10 @@ func calculateLineSum(
 		if i != len(currentLine) {
 			nextChar, _ := utf8.DecodeRuneInString(currentLine[i+width:])
 			if validNextChar := validNeighborChar(nextChar); validNextChar != nil {
-				totalForLine += convertNumStrAddSum(
-					string(runesInStr[*numStrStartIdx : *numStrEndIdx+1]),
-				)
+				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
+				totalForLine += convertNumStr(numStr)
 				l.Info().
-					Str("valid_num_for_line", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).
+					Str("valid_num_for_line", numStr).
 					Msg("found valid number")
 				numStrStartIdx = nil
 				continue
@@ -140,11 +139,10 @@ func calculateLineSum(
 
 		if prevChar != nil {
 			if validPrevChar := validNeighborChar(*prevChar); validPrevChar != nil {
-				totalForLine += convertNumStrAddSum(
-					string(runesInStr[*numStrStartIdx : *numStrEndIdx+1]),
-				)
+				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
+				totalForLine += convertNumStr(numStr)
 				// l.Info().
-				// 	Str("valid_num_for_line", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).
+				// 	Str("valid_num_for_line", numStr).
 				// 	Msg("found valid number")
 				numStrStartIdx = nil
 				continue
@@ -157,11 +155,10 @@ func calculateLineSum(
 		for _, neighborLine := range neighborLines {
 			validCharFromLine := validCharFromNeighborLines(neighborLine, *numStrStartIdx, *numStrEndIdx)
 			if validCharFromLine != nil {
-				totalForLine += convertNumStrAddSum(
-					string(runesInStr[*numStrStartIdx : *numStrEndIdx+1]),
-				)
+				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
+				totalForLine += convertNumStr(numStr)
 				l.Info().
-					Str("valid_num_for_line", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).
+					Str("valid_num_for_line", numStr).
 					Msg("found valid number")
 				numStrStartIdx = nil
 				break
