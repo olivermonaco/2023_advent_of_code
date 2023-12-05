@@ -23,18 +23,18 @@ func TestGearRatios_PartOne(t *testing.T) {
 		// 	inputFilename: "test_files/part_one/om_ex2.txt",
 		// 	expOutput:     2105,
 		// },
-		// {
-		// 	inputFilename: "test_files/part_one/om_ex3.txt",
-		// 	expOutput:     2488,
-		// },
+		{
+			inputFilename: "test_files/part_one/om_ex3.txt",
+			expOutput:     2488,
+		},
 		// {
 		// 	inputFilename: "test_files/part_one/om_ex4.txt",
 		// 	expOutput:     5589,
 		// },
-		{
-			inputFilename: "test_files/part_one/om_ex5.txt",
-			expOutput:     4571,
-		},
+		// {
+		// 	inputFilename: "test_files/part_one/om_ex5.txt",
+		// 	expOutput:     4571,
+		// },
 		// {
 		// 	inputFilename: "test_files/part_one/example_input.txt",
 		// 	expOutput:     4361,
