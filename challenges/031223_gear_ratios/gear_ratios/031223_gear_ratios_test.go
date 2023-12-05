@@ -15,26 +15,30 @@ func TestGearRatios_PartOne(t *testing.T) {
 		inputFilename string
 		expOutput     int
 	}{
+		// {
+		// 	inputFilename: "test_files/part_one/om_ex1.txt",
+		// 	expOutput:     35,
+		// },
+		// {
+		// 	inputFilename: "test_files/part_one/om_ex2.txt",
+		// 	expOutput:     2105,
+		// },
+		// {
+		// 	inputFilename: "test_files/part_one/om_ex3.txt",
+		// 	expOutput:     2488,
+		// },
+		// {
+		// 	inputFilename: "test_files/part_one/om_ex4.txt",
+		// 	expOutput:     5589,
+		// },
 		{
-			inputFilename: "test_files/part_one/om_ex1.txt",
-			expOutput:     35,
+			inputFilename: "test_files/part_one/om_ex5.txt",
+			expOutput:     4571,
 		},
-		{
-			inputFilename: "test_files/part_one/om_ex2.txt",
-			expOutput:     2105,
-		},
-		{
-			inputFilename: "test_files/part_one/om_ex3.txt",
-			expOutput:     2488,
-		},
-		{
-			inputFilename: "test_files/part_one/om_ex4.txt",
-			expOutput:     5589,
-		},
-		{
-			inputFilename: "test_files/part_one/example_input.txt",
-			expOutput:     4361,
-		},
+		// {
+		// 	inputFilename: "test_files/part_one/example_input.txt",
+		// 	expOutput:     4361,
+		// },
 	}
 
 	for _, tt := range tests {

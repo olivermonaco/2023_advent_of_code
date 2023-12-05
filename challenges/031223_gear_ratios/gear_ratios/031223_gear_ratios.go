@@ -107,8 +107,6 @@ func calculateLineSum(
 
 		currentChar, width := utf8.DecodeRuneInString(currentLine[i:])
 		w = width
-		// currentCharStr := string(currentChar)
-		// fmt.Println(currentCharStr + " current character")
 
 		if currentChar == INVALID_CHAR || !unicode.IsDigit(currentChar) {
 			prevChar = &currentChar
@@ -121,7 +119,7 @@ func calculateLineSum(
 		}
 		numStrEndIdx = kit.Ptr(currentCharIdx - 1)
 
-		if i != len(currentLine) {
+		if i != len(currentLine)-1 {
 			nextChar, _ := utf8.DecodeRuneInString(currentLine[i+width:])
 			if validNextChar := validNeighborChar(nextChar); validNextChar != nil {
 				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
@@ -141,9 +139,6 @@ func calculateLineSum(
 			if validPrevChar := validNeighborChar(*prevChar); validPrevChar != nil {
 				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
 				totalForLine += convertNumStr(numStr)
-				// l.Info().
-				// 	Str("valid_num_for_line", numStr).
-				// 	Msg("found valid number")
 				numStrStartIdx = nil
 				continue
 			}
@@ -157,9 +152,9 @@ func calculateLineSum(
 			if validCharFromLine != nil {
 				numStr := string(runesInStr[*numStrStartIdx : *numStrEndIdx+1])
 				totalForLine += convertNumStr(numStr)
-				l.Info().
-					Str("valid_num_for_line", numStr).
-					Msg("found valid number")
+				// l.Info().
+				// 	Str("valid_num_for_line", numStr).
+				// 	Msg("found valid number")
 				numStrStartIdx = nil
 				break
 			}
