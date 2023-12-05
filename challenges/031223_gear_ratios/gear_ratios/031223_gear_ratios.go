@@ -2,7 +2,6 @@ package gear_ratios
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"unicode"
 	"unicode/utf8"
@@ -41,7 +40,6 @@ func CalculatePartOne(ctx context.Context, input []string) int {
 
 // non nil from this means the neighbor character is valid
 func validNeighborChar(char rune) *rune {
-	fmt.Println(string(char))
 	if char != INVALID_CHAR && !unicode.IsDigit(char) {
 		return &char
 	}
@@ -101,7 +99,7 @@ func calculateLineSum(
 	var numStrStartIdx *int
 	var numStrEndIdx *int
 
-	var prevChar rune
+	var prevChar *rune
 	var totalForLine int
 
 	for i, w := 0, 0; i < len(currentLine); i += w {
@@ -113,7 +111,7 @@ func calculateLineSum(
 		// fmt.Println(currentCharStr + " current character")
 
 		if currentChar == INVALID_CHAR || !unicode.IsDigit(currentChar) {
-			prevChar = currentChar
+			prevChar = &currentChar
 			continue
 		}
 		if numStrStartIdx == nil {
@@ -133,7 +131,6 @@ func calculateLineSum(
 					Str("valid_num_for_line", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).
 					Msg("found valid number")
 				numStrStartIdx = nil
-				numStrEndIdx = nil
 				continue
 			}
 			if unicode.IsDigit(nextChar) {
@@ -141,14 +138,14 @@ func calculateLineSum(
 			}
 		}
 
-		if i != 0 {
-			if validPrevChar := validNeighborChar(prevChar); validPrevChar != nil {
+		if prevChar != nil {
+			if validPrevChar := validNeighborChar(*prevChar); validPrevChar != nil {
 				totalForLine += convertNumStrAddSum(
 					string(runesInStr[*numStrStartIdx : *numStrEndIdx+1]),
 				)
-				l.Info().
-					Str("valid_num_for_line", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).
-					Msg("found valid number")
+				// l.Info().
+				// 	Str("valid_num_for_line", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).
+				// 	Msg("found valid number")
 				numStrStartIdx = nil
 				continue
 			}
@@ -170,11 +167,8 @@ func calculateLineSum(
 				break
 			}
 		}
-		if numStrStartIdx != nil && numStrEndIdx != nil {
+		if numStrStartIdx != nil {
 			l.Warn().Str("invalid_number", string(runesInStr[*numStrStartIdx:*numStrEndIdx+1])).Msgf("invalid number")
-			if string(runesInStr[*numStrStartIdx:*numStrEndIdx+1]) == "691" {
-				fmt.Println("panic is starting")
-			}
 		}
 		// no valid neighbor characters found, reset
 		numStrStartIdx = nil

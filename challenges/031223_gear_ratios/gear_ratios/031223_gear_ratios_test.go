@@ -15,10 +15,14 @@ func TestGearRatios_PartOne(t *testing.T) {
 		inputFilename string
 		expOutput     int
 	}{
-		// {
-		// 	inputFilename: "test_files/part_one/om_ex2.txt",
-		// 	expOutput:     35,
-		// },
+		{
+			inputFilename: "test_files/part_one/om_ex1.txt",
+			expOutput:     35,
+		},
+		{
+			inputFilename: "test_files/part_one/om_ex2.txt",
+			expOutput:     2105,
+		},
 		{
 			inputFilename: "test_files/part_one/example_input.txt",
 			expOutput:     4361,
