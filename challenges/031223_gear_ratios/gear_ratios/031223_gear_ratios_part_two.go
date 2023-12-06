@@ -11,7 +11,8 @@ import (
 
 const GEAR_CHAR = '*'
 
-// shoulda been finding the non digit, non . chars all along...
+// find a *, then fan out to the neighbors. extend each neighbor to find consecutive num strs,
+// exit if there are more / less than 2 num strs
 func CalculatePartTwo(ctx context.Context, input []string) int {
 	ctx = log.Logger.WithContext(ctx)
 
