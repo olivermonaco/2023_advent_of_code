@@ -64,6 +64,8 @@ func separateNums(s string) (map[int]struct{}, map[int]struct{}) {
 }
 
 func winnersNum(ctx context.Context, curIdx int, lines []string) (int, int, int) {
+	l := log.Ctx(ctx).With().Logger()
+
 	if curIdx == len(lines) {
 		return 0, 0, 0
 	}
@@ -80,6 +82,8 @@ func winnersNum(ctx context.Context, curIdx int, lines []string) (int, int, int)
 	if numWinners != nil {
 		lineResult = max(int(math.Pow(float64(2), float64(*numWinners-1))), 1)
 	}
+
+	// TODO: left off here, log some stuff
 	numCopies := kit.Deref(numWinners)
 	resultWithCopies := lineResult
 	for i := 0; i <= numCopies; i += 1 {

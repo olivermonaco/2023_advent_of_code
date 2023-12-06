@@ -17,6 +17,6 @@ func main() {
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
 
 	// result := gear_ratios.CalculatePartOne(ctx, data)
-	result := scratchcards.CalculatePartOne(ctx, data)
+	result := scratchcards.CalculatePartTwo(ctx, data)
 	fmt.Printf("result is %d", result)
 }
