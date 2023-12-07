@@ -24,21 +24,36 @@ func CalculatePartOne(ctx context.Context, input []string) int {
 				l.Info().Int("winning_num", k).Msg("")
 			}
 		}
-		var lineResult int
 		if numWinners != nil {
-			lineResult = max(int(math.Pow(float64(2), float64(*numWinners-1))), 1)
+			result += calcLineResult(*numWinners)
 		}
-		result += lineResult
 	}
 	return result
 }
 
-func CalculatePartTwo(ctx context.Context, input []string) int {
-	// ctx = log.Logger.WithContext(ctx)
-	// l := log.Ctx(ctx).With().Logger()
+func CalculatePartTwo(ctx context.Context, lines []string) int {
+	var total int
+	for i := 0; i < len(lines); i += 1 {
+		lineTotal := recursiveLineCount(ctx, i, lines)
+		total += lineTotal
+	}
 
-	_, _, result := winnersNum(ctx, 0, input)
-	return result
+	return total
+}
+
+func recursiveLineCount(ctx context.Context, curIdx int, lines []string) int {
+	if curIdx >= len(lines) {
+		return 0
+	}
+	resultCount := 1
+	numWinners := resultForLine(lines, curIdx)
+	for i := 1; i < numWinners+1; i += 1 {
+		if curIdx+i >= len(lines) {
+			break
+		}
+		resultCount += recursiveLineCount(ctx, curIdx+i, lines)
+	}
+	return resultCount
 }
 
 func toIntMap(strs []string) map[int]struct{} {
@@ -63,33 +78,28 @@ func separateNums(s string) (map[int]struct{}, map[int]struct{}) {
 
 }
 
-func winnersNum(ctx context.Context, curIdx int, lines []string) (int, int, int) {
-	l := log.Ctx(ctx).With().Logger()
+func winnersForLine(haveNums, winningNums map[int]struct{}) int {
 
-	if curIdx == len(lines) {
-		return 0, 0, 0
-	}
+	var numWinners int
 
-	haveNums, winningNums := separateNums(lines[curIdx])
-	var numWinners *int
 	for k := range haveNums {
 		if _, ok := winningNums[k]; ok {
-			numWinners = kit.Ptr(kit.Deref(numWinners) + 1)
-			// l.Info().Int("winning_num", k).Msg("")
+			numWinners += 1
 		}
 	}
-	var lineResult int
-	if numWinners != nil {
-		lineResult = max(int(math.Pow(float64(2), float64(*numWinners-1))), 1)
+	return numWinners
+}
+
+func calcLineResult(numWinners int) int {
+	return max(int(math.Pow(float64(2), float64(numWinners-1))), 1)
+}
+
+func resultForLine(lines []string, idx int) int {
+	if idx >= len(lines) {
+		return 0
 	}
 
-	// TODO: left off here, log some stuff
-	numCopies := kit.Deref(numWinners)
-	resultWithCopies := lineResult
-	for i := 0; i <= numCopies; i += 1 {
-		nthLineResult, _, _ := winnersNum(ctx, curIdx+i, lines)
-		resultWithCopies += nthLineResult
-	}
-	_, _, nextTotal := winnersNum(ctx, curIdx+1, lines)
-	return lineResult, resultWithCopies, resultWithCopies + nextTotal
+	haveNums, winningNums := separateNums(lines[idx])
+	winners := winnersForLine(haveNums, winningNums)
+	return winners
 }
