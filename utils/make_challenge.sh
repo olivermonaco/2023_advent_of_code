@@ -58,8 +58,7 @@ make_challenge() {
 
     echo $TOP_FOLDER
     cd $PROJECT_FOLDER
-    mkdir -p $PACKAGE_FOLDER/test_files/part_one
-    mkdir -p $PACKAGE_FOLDER/test_files/part_two
+    mkdir -p $PACKAGE_FOLDER/test_files
 
     # copy over main.go file, replace package_name with input
     cp $EXAMPLE_FILES_FOLDER/$MAIN_GO_TEMPLATE_FILENAME $TOP_FOLDER
