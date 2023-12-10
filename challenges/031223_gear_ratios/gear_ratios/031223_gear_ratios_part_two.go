@@ -6,7 +6,6 @@ import (
 	"unicode"
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
-	"github.com/rs/zerolog/log"
 )
 
 const GEAR_CHAR = '*'
@@ -14,8 +13,6 @@ const GEAR_CHAR = '*'
 // find a *, then fan out to the neighbors. extend each neighbor to find consecutive num strs,
 // exit if there are more / less than 2 num strs
 func CalculatePartTwo(ctx context.Context, input []string) int {
-	ctx = log.Logger.WithContext(ctx)
-
 	var result int
 	for i, s := range input {
 		var neighborLines []string
@@ -39,7 +36,7 @@ func neighborDigit(char rune) *rune {
 
 func getCompleteNumstr(runesStr []rune, idxStart int) string {
 	var num []rune
-	for i := idxStart; i <= len(runesStr)-1; i += 1 {
+	for i := idxStart; i <= len(runesStr)-1; i++ {
 		if !unicode.IsDigit(runesStr[i]) {
 			break
 		}

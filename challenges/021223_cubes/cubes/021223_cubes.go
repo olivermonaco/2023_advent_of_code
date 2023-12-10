@@ -3,7 +3,6 @@ package cubes
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -32,10 +31,6 @@ var CompareTurn = Turn{
 			Color: Green{},
 		},
 	},
-}
-
-func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
 type Color interface {
@@ -254,8 +249,7 @@ func (compareCubes ColoredCubes[T]) LogInvalidCube(ctx context.Context, other Co
 }
 
 func CalculatePartOne(ctx context.Context, input []string, compareTurn Turn) int {
-	ctx = log.Logger.WithContext(ctx)
-	l := log.Ctx(ctx).With().Caller().Logger()
+	l := log.Ctx(ctx).With().Logger()
 
 	var result int
 	for _, s := range input {

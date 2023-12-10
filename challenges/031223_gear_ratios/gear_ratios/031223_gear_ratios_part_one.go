@@ -48,7 +48,7 @@ func validCharFromNeighborLines(otherLine string, charRangeStart, charRangeEnd i
 		}
 	}
 
-	for i := charRangeStart; i <= charRangeEnd+1; i += 1 {
+	for i := charRangeStart; i <= charRangeEnd+1; i++ {
 		if i == len(runesInStr) {
 			break
 		}

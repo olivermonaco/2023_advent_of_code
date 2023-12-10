@@ -33,7 +33,7 @@ func CalculatePartOne(ctx context.Context, input []string) int {
 
 func CalculatePartTwo(ctx context.Context, lines []string) int {
 	var total int
-	for i := 0; i < len(lines); i += 1 {
+	for i := 0; i < len(lines); i++ {
 		lineTotal := recursiveLineCount(ctx, i, lines)
 		total += lineTotal
 	}
@@ -47,7 +47,7 @@ func recursiveLineCount(ctx context.Context, curIdx int, lines []string) int {
 	}
 	resultCount := 1
 	numWinners := resultForLine(lines, curIdx)
-	for i := 1; i < numWinners+1; i += 1 {
+	for i := 1; i < numWinners+1; i++ {
 		if curIdx+i >= len(lines) {
 			break
 		}
@@ -84,7 +84,7 @@ func winnersForLine(haveNums, winningNums map[int]struct{}) int {
 
 	for k := range haveNums {
 		if _, ok := winningNums[k]; ok {
-			numWinners += 1
+			numWinners++
 		}
 	}
 	return numWinners
