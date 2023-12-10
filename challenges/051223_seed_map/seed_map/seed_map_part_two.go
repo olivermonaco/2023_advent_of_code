@@ -73,9 +73,6 @@ func CalculatePartTwo_CheckBounds(ctx context.Context, input []string) int {
 
 		if minOverallLocation == nil || *minOverallLocation > locationBounds[0].start {
 			minOverallLocation = &locationBounds[0].start
-			if kit.Deref(minOverallLocation) == 0 {
-				fmt.Println("why zero tho")
-			}
 			l.Info().Int("min_loc", *minOverallLocation).Msg("min loc overall lowered")
 		}
 	}
@@ -349,7 +346,6 @@ func (t translatorBounds) translateBounds(sourceVals []seedsBounds, sourceName s
 				return true
 			})
 		destBounds = coalesceSeedsBonds(destBounds)
-		// fmt.Printf("\nafter coalescing: %v\n", destBounds)
 
 		sourceIdx++
 		if sourceIdx >= len(sourceVals) {
@@ -403,14 +399,11 @@ func getLocationBounds(
 			panic(sourceName)
 		}
 		curSourceBoundsRanges, sourceName = translator.translateBounds(curSourceBoundsRanges, sourceName)
+
 		l.Info().
+			Array("source_bounds_ranges", seedsBondsSl(curSourceBoundsRanges)).
 			Str("new_source_name", sourceName).
-			Int("len_curboundranges", len(curSourceBoundsRanges)).
-			Msg("")
-		// l.Info().
-		// 	Array("source_bounds_ranges", seedsBondsSl(curSourceBoundsRanges)).
-		// 	Str("new_source_name", sourceName).
-		// 	Msg("new ranges calculated")
+			Msg("new ranges calculated")
 		if sourceName == "location" {
 			return curSourceBoundsRanges
 		}
