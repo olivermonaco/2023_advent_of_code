@@ -1,8 +1,14 @@
 #!/bin/bash
+snake_to_camel() {
+    echo $1 | awk 'BEGIN{FS="_";OFS=""} {for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}} 1'
+}
+
 PROJECT_FOLDER=$(realpath $(dirname $(dirname "${BASH_SOURCE[0]}")))
 
 YEAR="2023"
-PACKAGE_REPLACE_STR="package_name"
+PACKAGE_SNAKE_CASE_REPLACE_STR="package_name"
+PACKAGE_CAMEL_CASE_REPLACE_STR=$(snake_to_camel $PACKAGE_SNAKE_CASE_REPLACE_STR)
+
 DAY_REPLACE_STR="day_number"
 
 EXAMPLE_FILES_FOLDER=$PROJECT_FOLDER/utils/example_files
@@ -34,7 +40,8 @@ make_challenge() {
         return
     fi
     # challenge name
-    CHALLENGE_NAME=$1
+    CHALLENGE_SNAKE_CASE=$1
+    CHALLENGE_CAMEL_CASE=$(snake_to_camel $CHALLENGE_SNAKE_CASE)
 
     # calendar day
     DAY=$2
@@ -45,13 +52,14 @@ make_challenge() {
     # format date
     FORMATTED_DATE=$(date -j -f "%Y-%m-%d" "$DATE_STR" "+%d%m%y")
 
-    TOP_FOLDER_NAME=$FORMATTED_DATE"_"$CHALLENGE_NAME
+    TOP_FOLDER_NAME=$FORMATTED_DATE"_"$CHALLENGE_SNAKE_CASE
     TOP_FOLDER=$PROJECT_FOLDER/challenges/$TOP_FOLDER_NAME
-    PACKAGE_FOLDER=$TOP_FOLDER/$CHALLENGE_NAME
+    PACKAGE_FOLDER=$TOP_FOLDER/$CHALLENGE_SNAKE_CASE
 
     echo $TOP_FOLDER
     cd $PROJECT_FOLDER
-    mkdir -p $PACKAGE_FOLDER/test_files
+    mkdir -p $PACKAGE_FOLDER/test_files/part_one
+    mkdir -p $PACKAGE_FOLDER/test_files/part_two
 
     # copy over main.go file, replace package_name with input
     cp $EXAMPLE_FILES_FOLDER/$MAIN_GO_TEMPLATE_FILENAME $TOP_FOLDER
@@ -59,8 +67,7 @@ make_challenge() {
 
 
     # read file and replace string
-    sed -i '' "s/$PACKAGE_REPLACE_STR/$CHALLENGE_NAME/g" $TOP_FOLDER/main.go
-    sed -i '' "s/$PACKAGE_REPLACE_STR/$CHALLENGE_NAME/g" $TOP_FOLDER/main.go
+    sed -i '' "s/$PACKAGE_SNAKE_CASE_REPLACE_STR/$CHALLENGE_SNAKE_CASE/g" $TOP_FOLDER/main.go
     # include the url to the challenge
     ADVENT_DAY_URL_STR="// ${ADVENT_CHALLENGE_URL}/$YEAR/day/$DAY"
     sed -i '' "1i \\
@@ -72,17 +79,18 @@ make_challenge() {
 
     # copy over package .go file, replace package_name with input
     cp $EXAMPLE_FILES_FOLDER/$PACKAGE_TEMPLATE_FILENAME $PACKAGE_FOLDER
-    mv $PACKAGE_FOLDER/$PACKAGE_TEMPLATE_FILENAME $PACKAGE_FOLDER/$CHALLENGE_NAME.go
-    sed -i '' "s/$PACKAGE_REPLACE_STR/$CHALLENGE_NAME/g" "${PACKAGE_FOLDER}/${CHALLENGE_NAME}.go"
+    mv $PACKAGE_FOLDER/$PACKAGE_TEMPLATE_FILENAME $PACKAGE_FOLDER/$CHALLENGE_SNAKE_CASE.go
+    sed -i '' "s/$PACKAGE_SNAKE_CASE_REPLACE_STR/$CHALLENGE_SNAKE_CASE/g" "${PACKAGE_FOLDER}/${CHALLENGE_SNAKE_CASE}.go"
 
 
     # copy over package test file, replace package_name with input
     cp $EXAMPLE_FILES_FOLDER/$TEST_FILE_TEMPLATE_FILENAME $PACKAGE_FOLDER
-    mv $PACKAGE_FOLDER/$TEST_FILE_TEMPLATE_FILENAME ${PACKAGE_FOLDER}/${CHALLENGE_NAME}_test.go
-    sed -i '' "s/$PACKAGE_REPLACE_STR/$CHALLENGE_NAME/g" "${PACKAGE_FOLDER}/${CHALLENGE_NAME}_test.go"
+    mv $PACKAGE_FOLDER/$TEST_FILE_TEMPLATE_FILENAME ${PACKAGE_FOLDER}/${CHALLENGE_SNAKE_CASE}_test.go
+    sed -i '' "s/$PACKAGE_SNAKE_CASE_REPLACE_STR/$CHALLENGE_SNAKE_CASE/g" "${PACKAGE_FOLDER}/${CHALLENGE_SNAKE_CASE}_test.go"
+    sed -i '' "s/$PACKAGE_CAMEL_CASE_REPLACE_STR/$CHALLENGE_CAMEL_CASE/g" "${PACKAGE_FOLDER}/${CHALLENGE_SNAKE_CASE}_test.go"
 
     # placeholder for the puzzle input
-    touch $TOP_FOLDER/puzzle_input.txt
+    touch $PACKAGE_FOLDER/puzzle_input.txt
 }
 
 make_challenge "$@"
