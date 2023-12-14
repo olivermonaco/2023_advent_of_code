@@ -18,7 +18,7 @@ func init() {
 }
 
 func main() {
-	ctx := context.Background()
+	ctx := log.Logger.WithContext(context.Background())
 	// Get the absolute path of the current file
 	filename := "puzzle_input.txt"
 	relFilepath := fmt.Sprintf("cards/%s", filename)

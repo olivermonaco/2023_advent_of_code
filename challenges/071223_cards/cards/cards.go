@@ -3,10 +3,14 @@ package cards
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"math"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var faceCards = map[rune]int{
@@ -18,24 +22,44 @@ var faceCards = map[rune]int{
 }
 
 type hand struct {
-	cards      []int
-	bid        int
-	totalScore int
-	ogValue    string
+	cards                 []int
+	bid                   int
+	totalScore            int
+	typeFoundStr, ogValue string
 }
 
-// 249065417 too high
+func (h hand) MarshalZerologObject(e *zerolog.Event) {
+	e.
+		Ints("int_cards", h.cards).
+		Int("bid", h.bid).
+		Int("total_score", h.totalScore).
+		Str("type_found", h.typeFoundStr).
+		Str("og_value", h.ogValue)
+}
+
+type hands []hand
+
+func (hs hands) MarshalZerologArray(a *zerolog.Array) {
+
+	for _, h := range hs {
+		a.Object(h)
+	}
+}
+
 func CalculatePartOne(ctx context.Context, lines []string) int {
-	var hands []hand
+	l := log.Ctx(ctx).With().Logger()
+
+	var parsedHands []hand
 	for _, line := range lines {
 		cards, bid := separateCardsBid(line)
-		hands = append(hands, createHand(cards, bid, line))
+		parsedHands = append(parsedHands, createHand(cards, bid, line))
 	}
 
-	slices.SortFunc(hands, func(a, b hand) int { return cmp.Compare(a.totalScore, b.totalScore) })
+	slices.SortFunc(parsedHands, func(a, b hand) int { return cmp.Compare(a.totalScore, b.totalScore) })
 	var totalWinnings int
 
-	for idx, hand := range hands {
+	for idx, hand := range parsedHands {
+		l.Info().Object("hand", hand).Msg("hands ordered")
 		totalWinnings += ((idx + 1) * hand.bid)
 	}
 	return totalWinnings
@@ -58,7 +82,7 @@ func runeToCardValue(cardRune rune) int {
 	return int(card)
 }
 
-func separateCardsBid(line string) ([]int, int) {
+func separateCardsBid(line string) ([]rune, int) {
 	cardsBids := strings.Fields(line)
 	cardsStr, bidsStr := cardsBids[0], cardsBids[1]
 	bid, err := strconv.Atoi(bidsStr)
@@ -66,38 +90,40 @@ func separateCardsBid(line string) ([]int, int) {
 		panic([]any{err, bidsStr})
 	}
 
-	cards := make([]int, 0, len(cardsStr))
-
-	for _, cardRune := range cardsStr {
-		cards = append(cards, runeToCardValue(cardRune))
-	}
-	return cards, bid
+	return []rune(cardsStr), bid
 }
 
-func createHand(cards []int, bid int, ogValue string) hand {
+func createHand(cards []rune, bid int, ogValue string) hand {
 	// TODO: Left off here, must summarize the key factor in the score
 	totalCardOrderScore, cardToOccurrences := createCardOrderScoreAndMap(cards)
-	typeScore := createTypeScore(cardToOccurrences)
+	typeScore, typeFound := createTypeScore(cardToOccurrences)
+	cardInts := make([]int, 0, len(cards))
+	for _, card := range cards {
+		cardInts = append(cardInts, runeToCardValue(card))
+	}
 	return hand{
-		cards:      cards,
-		bid:        bid,
-		totalScore: totalCardOrderScore + typeScore,
-		ogValue:    ogValue,
+		cards:        cardInts,
+		bid:          bid,
+		totalScore:   totalCardOrderScore + typeScore,
+		ogValue:      ogValue,
+		typeFoundStr: typeFound,
 	}
 }
 
 // already looping through the cards, so just create the map for the type score later
-func createCardOrderScoreAndMap(cards []int) (int, map[int]int) {
+func createCardOrderScoreAndMap(cards []rune) (int, map[rune]int) {
 	var handCardOrderScore int
-	cardCount := make(map[int]int, 5)
+	cardCount := make(map[rune]int, 5)
 	for idx, card := range cards {
 		idxInArr := len(cards) - idx - 1
+
+		cardValue := runeToCardValue(card)
 		// must reverse the idx,
 		// as createOrderScore increases the importance from left to right in the array,
 		// and in this case the left most value is the most important value
 		cardOrderScore, err := createOrderScore(
 			createOrderScoreInput{
-				numToScore:         card,
+				numToScore:         cardValue,
 				idxInArray:         idxInArr,
 				minAllowedValue:    2,
 				maxAllowedNumValue: 14,
@@ -116,33 +142,46 @@ func createCardOrderScoreAndMap(cards []int) (int, map[int]int) {
 	return handCardOrderScore, cardCount
 }
 
-func createTypeScore(cardCount map[int]int) int {
+func createTypeScore(cardCount map[rune]int) (int, string) {
 	var firstPair, secondPair int
-	for _, count := range cardCount {
+	var firstPairCard, secondPairCard rune
+	keys := strings.Builder{}
+	for card, count := range cardCount {
+		keys.WriteRune(card)
 		if count < 2 {
 			continue
 		}
 		if count > 1 && firstPair > 1 {
 			secondPair = count
+			secondPairCard = card
 			continue
 		}
+		firstPairCard = card
 		firstPair = count
 	}
 	var typeOrder int
+	var typeFound string
 	switch {
 	case firstPair == 5:
 		typeOrder = 13
+		typeFound = fmt.Sprintf("five of a kind - %s", string(firstPairCard))
 	case firstPair == 4:
 		typeOrder = 12
+		typeFound = fmt.Sprintf("four of a kind - %s", string(firstPairCard))
 	case firstPair == 3 && secondPair == 2:
 		typeOrder = 11
+		typeFound = fmt.Sprintf("full house - %s, %s", string(firstPairCard), string(secondPairCard))
 	case firstPair == 3:
 		typeOrder = 10
+		typeFound = fmt.Sprintf("three of a kind - %s", string(firstPairCard))
 	case firstPair == 2 && secondPair == 2:
 		typeOrder = 9
+		typeFound = fmt.Sprintf("two pair - %s, %s", string(firstPairCard), string(secondPairCard))
 	case firstPair == 2:
 		typeOrder = 8
+		typeFound = fmt.Sprintf("pair - %s", string(firstPairCard))
 	default:
+		typeFound = fmt.Sprintf("card high - %s", keys.String())
 		typeOrder = 0
 	}
 
@@ -159,7 +198,7 @@ func createTypeScore(cardCount map[int]int) int {
 		panic(err)
 	}
 
-	return typeScore
+	return typeScore, typeFound
 }
 
 type createOrderScoreInput struct {
@@ -195,16 +234,18 @@ type createOrderScoreInput struct {
 // use the below google sheet to play with calculations / numbers
 // https://docs.google.com/spreadsheets/d/1Hhnie7jD6O-1ZY7OxhfSHz_ooTdWfPHSzwI3SN5AiLQ/edit#gid=129553777
 func createOrderScore(input createOrderScoreInput) (int, error) {
+
 	numPossibleValues := input.maxAllowedNumValue - input.minAllowedValue
 
 	// normalize number where smallest is 0
-	numTranslated := input.minAllowedValue + (input.numToScore - input.minAllowedValue)
+	numTranslated := input.numToScore - input.minAllowedValue
 	base := float64(numPossibleValues + 1)
 
 	score := math.Pow(
 		base, float64(input.idxInArray),
-	) +
-		math.Pow(base, float64(input.idxInArray))*float64(numTranslated)
+	)
+	idxArrMult := math.Pow(base, float64(input.idxInArray))
+	score += idxArrMult * (float64(numTranslated) - 1)
 
 	return int(score), nil
 }

@@ -19,6 +19,10 @@ func TestCards_PartOne(t *testing.T) {
 		// 	inputFilename: "test_files/example_input.txt",
 		// 	expOutput:     6440,
 		// },
+		{
+			inputFilename: "test_files/om_ex1.txt",
+			expOutput:     6440,
+		},
 	}
 
 	for _, tt := range tests {
