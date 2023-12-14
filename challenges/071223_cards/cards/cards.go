@@ -3,12 +3,11 @@ package cards
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"math"
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/olivermonaco/2023_advent_of_code/kit"
 )
 
 var faceCards = map[rune]int{
@@ -95,13 +94,17 @@ func createCardOrderScoreAndMap(cards []int) (int, map[int]int) {
 		// must reverse the idx,
 		// as createOrderScore increases the importance from left to right in the array,
 		// and in this case the left most value is the most important value
-		cardOrderScore := createOrderScore(
+		cardOrderScore, err := createOrderScore(
 			createOrderScoreInput{
 				numToScore:         cards[idx],
 				idxInArray:         len(cards) - idx - 1,
-				minAllowedValue:    1,
+				minAllowedValue:    2,
 				maxAllowedNumValue: 14,
+				base:               3,
 			})
+		if err != nil {
+			panic(err)
+		}
 		handCardOrderScore += cardOrderScore
 
 		if existing, ok := cardCount[card]; ok {
@@ -145,20 +148,25 @@ func createTypeScore(cardCount map[int]int) int {
 
 	// should be at the same scale as the order score for the card values,
 	// hence starting at 14
-	typeScore := createOrderScore(
+	typeScore, err := createOrderScore(
 		createOrderScoreInput{
 			numToScore:         typeOrder,
 			idxInArray:         5, // max card value place is 4, so one more than that
 			maxAllowedNumValue: 12,
+			base:               3,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	return typeScore
 }
 
 type createOrderScoreInput struct {
-	numToScore, idxInArray, minAllowedValue, maxAllowedNumValue int
-	base                                                        *int
+	numToScore, idxInArray              int
+	minAllowedValue, maxAllowedNumValue int
+	base                                int
 }
 
 // createOrderScore uses the principle of:
@@ -188,21 +196,20 @@ type createOrderScoreInput struct {
 //
 // use the below google sheet to play with calculations / numbers
 // https://docs.google.com/spreadsheets/d/1Hhnie7jD6O-1ZY7OxhfSHz_ooTdWfPHSzwI3SN5AiLQ/edit#gid=129553777
-func createOrderScore(input createOrderScoreInput) int {
-	base := float64(kit.Deref(input.base))
-	if input.base == nil {
-		base = float64(2)
+func createOrderScore(input createOrderScoreInput) (int, error) {
+	if input.base < 3 {
+		return 0, fmt.Errorf("base must be greater than 2. Received %d", input.base)
 	}
 
 	numPossibleValues := input.maxAllowedNumValue - input.minAllowedValue
-	numToScoreIdx := numPossibleValues - (input.maxAllowedNumValue - input.numToScore)
 
-	power := math.Ceil(
-		math.Log(float64(numPossibleValues)) / math.Log(float64(base)),
-	)
+	// normalize number where smallest is 0
+	numTranslated := input.numToScore - input.minAllowedValue
 
-	numToScoreScaled := math.Pow(base, power) * math.Pow(base, float64(input.idxInArray))
-	addtl := math.Pow(base, float64(input.idxInArray)) * float64(numToScoreIdx)
+	scaleFactor := input.base * numPossibleValues / (input.base - 1)
 
-	return int(numToScoreScaled) + int(addtl)
+	numToScoreScaled := float64(scaleFactor)*(math.Pow(float64(input.base), float64(input.idxInArray))) +
+		(float64(numTranslated) * float64(input.base))
+
+	return int(numToScoreScaled), nil
 }
