@@ -3,7 +3,6 @@ package cards
 import (
 	"cmp"
 	"context"
-	"fmt"
 	"math"
 	"slices"
 	"strconv"
@@ -25,16 +24,17 @@ type hand struct {
 	ogValue    string
 }
 
+// 249065417 too high
 func CalculatePartOne(ctx context.Context, lines []string) int {
 	var hands []hand
 	for _, line := range lines {
 		cards, bid := separateCardsBid(line)
 		hands = append(hands, createHand(cards, bid, line))
 	}
-	// multiply by -1 to ensure worst hand is at the top
+
 	slices.SortFunc(hands, func(a, b hand) int { return cmp.Compare(a.totalScore, b.totalScore) })
 	var totalWinnings int
-	// todo: left off here, type ordering is still not working
+
 	for idx, hand := range hands {
 		totalWinnings += ((idx + 1) * hand.bid)
 	}
@@ -75,7 +75,7 @@ func separateCardsBid(line string) ([]int, int) {
 }
 
 func createHand(cards []int, bid int, ogValue string) hand {
-
+	// TODO: Left off here, must summarize the key factor in the score
 	totalCardOrderScore, cardToOccurrences := createCardOrderScoreAndMap(cards)
 	typeScore := createTypeScore(cardToOccurrences)
 	return hand{
@@ -91,16 +91,16 @@ func createCardOrderScoreAndMap(cards []int) (int, map[int]int) {
 	var handCardOrderScore int
 	cardCount := make(map[int]int, 5)
 	for idx, card := range cards {
+		idxInArr := len(cards) - idx - 1
 		// must reverse the idx,
 		// as createOrderScore increases the importance from left to right in the array,
 		// and in this case the left most value is the most important value
 		cardOrderScore, err := createOrderScore(
 			createOrderScoreInput{
-				numToScore:         cards[idx],
-				idxInArray:         len(cards) - idx - 1,
+				numToScore:         card,
+				idxInArray:         idxInArr,
 				minAllowedValue:    2,
 				maxAllowedNumValue: 14,
-				base:               3,
 			})
 		if err != nil {
 			panic(err)
@@ -143,7 +143,7 @@ func createTypeScore(cardCount map[int]int) int {
 	case firstPair == 2:
 		typeOrder = 8
 	default:
-		typeOrder = 7
+		typeOrder = 0
 	}
 
 	// should be at the same scale as the order score for the card values,
@@ -153,7 +153,6 @@ func createTypeScore(cardCount map[int]int) int {
 			numToScore:         typeOrder,
 			idxInArray:         5, // max card value place is 4, so one more than that
 			maxAllowedNumValue: 12,
-			base:               3,
 		},
 	)
 	if err != nil {
@@ -166,7 +165,6 @@ func createTypeScore(cardCount map[int]int) int {
 type createOrderScoreInput struct {
 	numToScore, idxInArray              int
 	minAllowedValue, maxAllowedNumValue int
-	base                                int
 }
 
 // createOrderScore uses the principle of:
@@ -197,19 +195,16 @@ type createOrderScoreInput struct {
 // use the below google sheet to play with calculations / numbers
 // https://docs.google.com/spreadsheets/d/1Hhnie7jD6O-1ZY7OxhfSHz_ooTdWfPHSzwI3SN5AiLQ/edit#gid=129553777
 func createOrderScore(input createOrderScoreInput) (int, error) {
-	if input.base < 3 {
-		return 0, fmt.Errorf("base must be greater than 2. Received %d", input.base)
-	}
-
 	numPossibleValues := input.maxAllowedNumValue - input.minAllowedValue
 
 	// normalize number where smallest is 0
-	numTranslated := input.numToScore - input.minAllowedValue
+	numTranslated := input.minAllowedValue + (input.numToScore - input.minAllowedValue)
+	base := float64(numPossibleValues + 1)
 
-	scaleFactor := input.base * numPossibleValues / (input.base - 1)
+	score := math.Pow(
+		base, float64(input.idxInArray),
+	) +
+		math.Pow(base, float64(input.idxInArray))*float64(numTranslated)
 
-	numToScoreScaled := float64(scaleFactor)*(math.Pow(float64(input.base), float64(input.idxInArray))) +
-		(float64(numTranslated) * float64(input.base))
-
-	return int(numToScoreScaled), nil
+	return int(score), nil
 }
