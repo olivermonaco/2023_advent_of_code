@@ -28,6 +28,20 @@ type hand struct {
 	typeFoundStr, ogValue string
 }
 
+func (h hand) ToCSVRow() []string {
+	cardIntStr := make([]string, 0, 4)
+	for _, c := range h.cards {
+		cardIntStr = append(cardIntStr, strconv.Itoa(c))
+	}
+	return []string{
+		strings.Join(cardIntStr, " "),
+		strconv.Itoa(h.bid),
+		h.ogValue,
+		h.typeFoundStr,
+		strconv.Itoa(h.totalScore),
+	}
+}
+
 func (h hand) MarshalZerologObject(e *zerolog.Event) {
 	e.
 		Ints("int_cards", h.cards).
@@ -55,13 +69,29 @@ func CalculatePartOne(ctx context.Context, lines []string) int {
 		parsedHands = append(parsedHands, createHand(cards, bid, line))
 	}
 
-	slices.SortFunc(parsedHands, func(a, b hand) int { return cmp.Compare(a.totalScore, b.totalScore) })
+	slices.SortStableFunc(parsedHands, func(a, b hand) int { return cmp.Compare(a.totalScore, b.totalScore) })
 	var totalWinnings int
 
 	for idx, hand := range parsedHands {
-		l.Info().Object("hand", hand).Msg("hands ordered")
+		// l.Info().Object("hand", hand).Msg("hands ordered")
 		totalWinnings += ((idx + 1) * hand.bid)
 	}
+	rows := make([][]string, len(parsedHands)+1)
+
+	rows[0] = []string{
+		"og_value",
+		"int_cards",
+		"bid",
+		"total_score",
+		"type_found_desc",
+	}
+	l.Info().Msg(strings.Join(rows[0], ","))
+
+	for i := len(parsedHands) - 1; i >= 0; i-- {
+		rows[i+1] = parsedHands[i].ToCSVRow()
+		l.Info().Msg(strings.Join(rows[i+1], ","))
+	}
+
 	return totalWinnings
 }
 
@@ -151,7 +181,7 @@ func createTypeScore(cardCount map[rune]int) (int, string) {
 		if count < 2 {
 			continue
 		}
-		if count > 1 && firstPair > 1 {
+		if firstPair > 1 {
 			secondPair = count
 			secondPairCard = card
 			continue
@@ -162,22 +192,22 @@ func createTypeScore(cardCount map[rune]int) (int, string) {
 	var typeOrder int
 	var typeFound string
 	switch {
-	case firstPair == 5:
+	case max(firstPair, secondPair) == 5:
 		typeOrder = 13
 		typeFound = fmt.Sprintf("five of a kind - %s", string(firstPairCard))
-	case firstPair == 4:
+	case max(firstPair, secondPair) == 4:
 		typeOrder = 12
 		typeFound = fmt.Sprintf("four of a kind - %s", string(firstPairCard))
-	case firstPair == 3 && secondPair == 2:
+	case max(firstPair, secondPair) == 3 && min(firstPair, secondPair) == 2:
 		typeOrder = 11
-		typeFound = fmt.Sprintf("full house - %s, %s", string(firstPairCard), string(secondPairCard))
-	case firstPair == 3:
+		typeFound = fmt.Sprintf("full house - %s %s", string(firstPairCard), string(secondPairCard))
+	case max(firstPair, secondPair) == 3:
 		typeOrder = 10
 		typeFound = fmt.Sprintf("three of a kind - %s", string(firstPairCard))
 	case firstPair == 2 && secondPair == 2:
 		typeOrder = 9
-		typeFound = fmt.Sprintf("two pair - %s, %s", string(firstPairCard), string(secondPairCard))
-	case firstPair == 2:
+		typeFound = fmt.Sprintf("two pair - %s %s", string(firstPairCard), string(secondPairCard))
+	case max(firstPair, secondPair) == 2:
 		typeOrder = 8
 		typeFound = fmt.Sprintf("pair - %s", string(firstPairCard))
 	default:
