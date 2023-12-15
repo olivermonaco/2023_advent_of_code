@@ -50,16 +50,6 @@ func (h hand) MarshalZerologObject(e *zerolog.Event) {
 		Str("type_found", h.typeFoundStr).
 		Str("og_value", h.ogValue)
 }
-
-type hands []hand
-
-func (hs hands) MarshalZerologArray(a *zerolog.Array) {
-
-	for _, h := range hs {
-		a.Object(h)
-	}
-}
-
 func CalculatePartOne(ctx context.Context, lines []string) int {
 	l := log.Ctx(ctx).With().Logger()
 
@@ -236,33 +226,7 @@ type createOrderScoreInput struct {
 	minAllowedValue, maxAllowedNumValue int
 }
 
-// createOrderScore uses the principle of:
-// b^n > b^(n-1)*(n-1) for b^(n-1) < n < (b^n)-1
-// and
-// b^n = b^(n-1)*(n)   for b^(n-1) < n < b^n
-//
-// TODO: flesh out explainer
-//
-// each number in the array must be one of:
-//   - a set of consecutive numbers starting from some number,
-//     up to the possible number of ordered values (see below)
-//   - eg. only possible numbers are 2 through 6, so there are 5 possible numbers
-//
-// the idx in array assumes the further right in the array, the higher the order score should be
-//   - eg. index 5 should be scored higher than index 4
-//
-// the index for when a value is equal to the next power is always b^(n-1)*b
-// this means there are only k-1 valid consecutive values
-//
-//   - if k were 4 and n were 2, you would only be able to use this powers principle if there were up to 16 valid values
-//
-//   - if k were 2 and n were 3, you would only be able to use this powers principle if there were 4 valid values
-//
-//   - this can also be represented as m*b*(n-1)*b
-//     -- here m is the multiplier, b is the base, and n again is the i
-//
-// use the below google sheet to play with calculations / numbers
-// https://docs.google.com/spreadsheets/d/1Hhnie7jD6O-1ZY7OxhfSHz_ooTdWfPHSzwI3SN5AiLQ/edit#gid=129553777
+// TODO: flesh out comment
 func createOrderScore(input createOrderScoreInput) (int, error) {
 
 	numPossibleValues := input.maxAllowedNumValue - input.minAllowedValue
