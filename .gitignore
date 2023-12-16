@@ -7,5 +7,5 @@
 .VSCodeCounter/
 
 # general
-TODO.txt
+**log_*.txt
 **/configs/*
