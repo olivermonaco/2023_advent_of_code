@@ -18,12 +18,13 @@ func init() {
 }
 
 func main() {
-	ctx := context.Background()
+	ctx := log.Logger.WithContext(context.Background())
 	// Get the absolute path of the current file
 	filename := "puzzle_input.txt"
 	relFilepath := fmt.Sprintf("maps/%s", filename)
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
 
-	result := maps.CalculatePartOne(ctx, data)
+	// result := maps.CalculatePartOne(ctx, data)
+	result := maps.CalculatePartTwo(ctx, data)
 	fmt.Printf("result is %d", result)
 }

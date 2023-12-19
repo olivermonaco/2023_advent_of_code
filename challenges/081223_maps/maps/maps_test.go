@@ -16,8 +16,12 @@ func TestMaps_PartOne(t *testing.T) {
 		expOutput     int
 	}{
 		{
-			inputFilename: "test_files/example_input.txt",
+			inputFilename: "test_files/part_one/example_input.txt",
 			expOutput:     2,
+		},
+		{
+			inputFilename: "test_files/part_one/example_input2.txt",
+			expOutput:     6,
 		},
 	}
 
@@ -36,8 +40,12 @@ func TestMaps_PartTwo(t *testing.T) {
 		expOutput     int
 	}{
 		{
-			inputFilename: "test_files/example_input.txt",
-			expOutput:     0,
+			inputFilename: "test_files/part_two/example_input.txt",
+			expOutput:     6,
+		},
+		{
+			inputFilename: "test_files/part_two/om_ex1.txt",
+			expOutput:     5,
 		},
 	}
 
