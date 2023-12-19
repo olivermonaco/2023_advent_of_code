@@ -9,6 +9,8 @@ YEAR="2023"
 PACKAGE_SNAKE_CASE_REPLACE_STR="package_name"
 PACKAGE_CAMEL_CASE_REPLACE_STR=$(snake_to_camel $PACKAGE_SNAKE_CASE_REPLACE_STR)
 
+REPLACE_DATE_STR="replace_date_"
+
 DAY_REPLACE_STR="day_number"
 
 EXAMPLE_FILES_FOLDER=$PROJECT_FOLDER/utils/example_files
@@ -67,6 +69,8 @@ make_challenge() {
 
     # read file and replace string
     sed -i '' "s/$PACKAGE_SNAKE_CASE_REPLACE_STR/$CHALLENGE_SNAKE_CASE/g" $TOP_FOLDER/main.go
+    # replace date string
+    sed -i '' "s/$REPLACE_DATE_STR/${FORMATTED_DATE}_/g" $TOP_FOLDER/main.go
     # include the url to the challenge
     ADVENT_DAY_URL_STR="// ${ADVENT_CHALLENGE_URL}/$YEAR/day/$DAY"
     sed -i '' "1i \\

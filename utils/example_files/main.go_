@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
+	"github.com/olivermonaco/2023_advent_of_code/challenges/replace_date_package_name/package_name"
 )
 
 func init() {
