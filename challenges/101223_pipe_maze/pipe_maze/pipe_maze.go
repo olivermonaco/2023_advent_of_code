@@ -11,12 +11,11 @@ const (
 )
 
 var validCoordToPipeTypes = map[int][]rune{
-    0: []rune{'|', '7', 'F', 'S'},
-    1:[]rune{'-', '7', 'J', 'S'},
-    2:[]rune{'|', 'J', 'L', 'S'},
-    3:[]rune{'-', 'F', 'L', 'S'},
+	0: []rune{'|', '7', 'F', 'S'},
+	1: []rune{'-', '7', 'J', 'S'},
+	2: []rune{'|', 'J', 'L', 'S'},
+	3: []rune{'-', 'F', 'L', 'S'},
 }
-
 
 type canProgress interface {
 	addToOrigin(o origin)
@@ -25,7 +24,7 @@ type canProgress interface {
 
 type pipe struct {
 	lastPipeRelation int
-	pipeType       rune
+	pipeType         rune
 }
 
 type origin struct {
@@ -34,36 +33,30 @@ type origin struct {
 }
 
 func calcLastPipe(nextPipeRelation int) int {
-    return (nextPipeRelation + len(validCoordToPipeTypes) / 2) % len(validCoordToPipeTypes)
+	return (nextPipeRelation + len(validCoordToPipeTypes)/2) % len(validCoordToPipeTypes)
 }
 
 func (o origin) validNext(r rune, relation int) *pipe {
-    var validPipe *pipe
-        for coord, pipeType := range validCoordToPipeTypes[relation] {
-            if r == pipeType {
-                validPipe = kit.Ptr(pipe{
-                    lastPipe: calcLastPipe(0),
-                    pipeType: r,
-                })
-            }
-        }
-        return validPipe
+	var validPipe *pipe
+	for _, pipeType := range validCoordToPipeTypes[relation] {
+		if r == pipeType {
+			validPipe = kit.Ptr(pipe{
+				lastPipeRelation: calcLastPipe(relation),
+				pipeType:         r,
+			})
+		}
+	}
+	return validPipe
 }
 
-func (o origin) next(lines []string) pipe {
-	var prevLine, nextLine *string
-	if o.yCoord > 0 {
-		prevLine = kit.Ptr(lines[o.yCoord-1])
+func (o origin) next(potentialPipes map[int]rune) pipe {
+	var nextPipe pipe
+	for relation, pipeType := range potentialPipes {
+		if o.validNext(pipeType, relation) != nil {
+			nextPipe = *o.validNext(pipeType, relation)
+		}
 	}
-	if o.yCoord < len(lines)-1 {
-		prevLine = kit.Ptr(lines[o.yCoord+1])
-	}
-	var nP pipe
-	curLine := lines[o.yCoord]
-	if prevLine != nil {
-        if []rune(curLine)[o.xCoord]
-	}
-
+	return nextPipe
 }
 
 func findOrigin(lines []string) origin {
