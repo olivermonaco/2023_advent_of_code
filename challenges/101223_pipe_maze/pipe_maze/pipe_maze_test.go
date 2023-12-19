@@ -17,7 +17,11 @@ func TestPipeMaze_PartOne(t *testing.T) {
 	}{
 		{
 			inputFilename: "test_files/example_input.txt",
-			expOutput:     0,
+			expOutput:     4,
+		},
+		{
+			inputFilename: "test_files/example_input2.txt",
+			expOutput:     4,
 		},
 	}
 
