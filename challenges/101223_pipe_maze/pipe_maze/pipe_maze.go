@@ -160,6 +160,9 @@ func CalculatePartOne(ctx context.Context, input []string) int {
 	return int(math.Ceil(farthest))
 }
 
+// TODO: left off here, check the tile one up and left,
+// and tile directly left to see if it encloses itself, then move backward til you get to that tile,
+// then I need logic to calculate the min tile locs surrounding the valid spots
 func CalculatePartTwo(ctx context.Context, input []string) int {
 	return 0
 }
