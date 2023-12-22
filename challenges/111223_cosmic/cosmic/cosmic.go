@@ -44,7 +44,7 @@ func createSpace(lines []string) space {
 	for rowIdx, line := range lines {
 		// add to map of columns with
 		s.emptyRows[rowIdx] = struct{}{}
-		for columnIdx, r := range []rune(line) {
+		for columnIdx, r := range line {
 			if r == galaxyChar {
 				g := galaxy{
 					xCoord: columnIdx,
@@ -58,7 +58,7 @@ func createSpace(lines []string) space {
 		}
 	}
 	// create map of columns with no galaxies
-	for colNum := range []rune(lines[0]) {
+	for colNum := range lines[0] {
 		s.emptyColumns[colNum] = struct{}{}
 	}
 

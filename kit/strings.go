@@ -10,5 +10,4 @@ func ReverseString(s string) string {
 	}
 	reversedS := string(reversed)
 	return reversedS
-
 }
