@@ -35,8 +35,10 @@ func parseLine(line string) row {
 	if len(rowInfo) != 2 {
 		panic(rowInfo)
 	}
-	cMap := make([]int, 0, len(rowInfo[1]))
-	for _, contig := range rowInfo[1] {
+	contigNums := strings.Split(rowInfo[1], ",")
+
+	cMap := make([]int, 0, len(contigNums))
+	for _, contig := range contigNums {
 		n, err := strconv.Atoi(string(contig))
 		if err != nil {
 			panic(err)
@@ -78,7 +80,7 @@ func (r row) findCombinations() int {
 	return 0
 }
 
-func calcSpringLocCombos(s string, contiguousKeys []int) [][2]int {
+func calcSpringLocCombos(s string, contiguousKeys []int) int {
 	var (
 		i, j, checkKeysIdx int
 		initialIdxs        [][2]int
@@ -117,7 +119,22 @@ func calcSpringLocCombos(s string, contiguousKeys []int) [][2]int {
 
 		checkKeysIdx++
 	}
-	return initialIdxs
+
+	// TODO: replace this, or use it if the known / unknown values can use it
+	// var latestSpringIdx, latestSpringLen int
+	// if len(initialIdxs) > 0 {
+	// 	latestSpringIdx = initialIdxs[len(initialIdxs)-1][1]
+	// 	latestSpringLen = initialIdxs[len(initialIdxs)-1][1] -
+	// 		initialIdxs[len(initialIdxs)-1][0] + 1
+	// }
+	// combos := calculateCombos(len(contiguousKeys), latestSpringIdx, latestSpringLen, len(s), -1)
+	combos := calcRecursiveRangeTotal(
+		initialIdxs,
+		0,
+		0,
+		len(s),
+	)
+	return combos
 }
 
 func identifyNumConsecutiveBrokenSprings(s string) [][2]int {
@@ -125,22 +142,103 @@ func identifyNumConsecutiveBrokenSprings(s string) [][2]int {
 	i := 0
 	j := 0
 	for {
-		if j == len(s) && j > i {
-			consecutiveBroken = append(consecutiveBroken, [2]int{i, j - 1})
-			break
-		}
-		if string([]rune(s)[j]) != brokenSpring {
-			if j > i {
+		if j == len(s) {
+			if string([]rune(s)[j-1]) == brokenSpring {
 				consecutiveBroken = append(consecutiveBroken, [2]int{i, j - 1})
 			}
-			j++
-			i = j
-			continue
-		}
-		if j >= len(s) {
 			break
 		}
+		if string([]rune(s)[j]) == brokenSpring {
+			j++
+			continue
+		}
+		if j > i {
+			consecutiveBroken = append(consecutiveBroken, [2]int{i, j - 1})
+		}
 		j++
+		i = j
 	}
 	return consecutiveBroken
+}
+
+func calculateCombos(numKeys, latestSpringsIdx, latestNumSprings, numSpaces, diffBetweenSpaces int) int {
+	var total int
+	for {
+		for curStart := numSpaces - latestSpringsIdx; curStart > -1; curStart-- {
+			total += calcSeries(curStart, curStart, diffBetweenSpaces)
+		}
+		if latestSpringsIdx+latestNumSprings == numSpaces {
+			break
+		}
+		latestSpringsIdx++
+	}
+
+	return total
+}
+
+// func calcNumSpaces(ranges [][2]int, curIdx, offset int) int {
+// 	for _, r := range ranges[curIdx:] {
+
+// 	}
+// }
+
+// TODO: test this and make it better
+func calcRecursiveRangeTotal(ranges [][2]int, curIdx, offset, maxNum int) int {
+	var total int
+	lastStart := ranges[len(ranges)-1][0]
+	lastEnd := ranges[len(ranges)-1][1]
+
+	if curIdx == len(ranges)-1 {
+		curStart := lastStart
+		curEnd := lastEnd
+		for {
+			lastStartOffset := curStart + offset
+			lenOfRange := curEnd - curStart + 1
+			compareTotal := lastStartOffset + lenOfRange
+			if compareTotal > maxNum {
+				break
+			}
+			total++
+			offset++
+		}
+		return total
+	}
+	// curStart := ranges[curIdx][0]
+	// curEnd := ranges[curIdx][1]
+	for {
+		subTotal := calcRecursiveRangeTotal(ranges, curIdx+1, offset, maxNum)
+		total += subTotal
+		if subTotal == 0 {
+			// this replaces the below
+			break
+		}
+		// lastStartOffset := lastStart + offset
+		// lastStartRange := lastEnd - lastStart + 1
+		// otherCompareTotal := lastStartOffset + lastStartRange
+		// if otherCompareTotal > maxNum {
+		// 	break
+		// }
+		offset++
+	}
+	return total
+}
+
+func calcCurrentRange(curRangeStart, curRangeEnd, limit int) int {
+	var total int
+	for {
+		currentLen := curRangeEnd - curRangeStart + 1
+		if curRangeStart+currentLen == limit {
+			break
+		}
+		total++
+	}
+	return total
+}
+
+func calcSeries(numterms, firstTerm, diff int) int {
+	total := (2 * firstTerm)
+	total += ((numterms - 1) * diff)
+	total *= numterms
+	total /= 2
+	return total
 }

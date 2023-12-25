@@ -6,7 +6,6 @@ import (
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHotSprings_PartOne(t *testing.T) {
@@ -53,34 +52,37 @@ func TestCalcSpringLocCombos(t *testing.T) {
 	tests := []struct {
 		inStr    string
 		inKeys   []int
-		expected [][2]int
+		expected int
 	}{
 		// {
 		// 	inStr:    "???",
 		// 	inKeys:   []int{1, 1},
-		// 	expected: [][2]int{{0, 0}, {2, 2}},
+		// 	expected: 1,
 		// },
 		// {
 		// 	inStr:    "?###????????",
 		// 	inKeys:   []int{4, 1, 1},
 		// 	expected: [][2]int{{0, 3}, {5, 5}, {7, 7}},
 		// },
+		// {
+		// 	inStr:    "?##?#????#",
+		// 	inKeys:   []int{3, 1, 1},
+		// 	expected: [][2]int{{0, 2}, {4, 4}, {9, 9}},
+		// },
 		{
-			inStr:    "?##?#????#",
-			inKeys:   []int{3, 1, 1},
-			expected: [][2]int{{0, 3}, {5, 5}, {7, 7}},
+			inStr:    "??????",
+			inKeys:   []int{1, 1, 1},
+			expected: 4,
+		},
+		{
+			inStr:    "???????????",
+			inKeys:   []int{1, 1, 2, 1},
+			expected: 35,
 		},
 	}
 
 	for _, tt := range tests {
-		actuals := calcSpringLocCombos(tt.inStr, tt.inKeys)
-		require.Lenf(
-			t, actuals, len(tt.expected),
-			"actual keys:\n%v\nand expected keys:\n%v\ninequal",
-			actuals, tt.expected,
-		)
-		for i, actual := range actuals {
-			assert.Equalf(t, tt.expected[i], actual, "actual (%v) and expected (%v) inequal")
-		}
+		actual := calcSpringLocCombos(tt.inStr, tt.inKeys)
+		assert.Equalf(t, tt.expected, actual, "actual (%v) and expected (%v) inequal")
 	}
 }

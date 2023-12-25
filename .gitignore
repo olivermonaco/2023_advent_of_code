@@ -9,3 +9,4 @@
 # general
 **log_*.txt
 **/configs/*
+**/scratch/**
