@@ -18,6 +18,11 @@ type row struct {
 	possibleRanges, definiteRanges [][2]int
 }
 
+type rangeAndLimit struct {
+	low, high int
+	limit     *int
+}
+
 func CalculatePartOne(ctx context.Context, input []string) int {
 	rows := make([]row, 0, len(input))
 	for _, line := range input {
@@ -82,8 +87,8 @@ func (r row) findCombinations() int {
 
 func calcSpringLocCombos(s string, contiguousKeys []int) int {
 	var (
-		i, j, checkKeysIdx int
-		initialIdxs        [][2]int
+		i, j, checkKeysIdx, brokenSpringsIdx int
+		initialIdxs                          []rangeAndLimit
 	)
 
 	knownBrokenSprings := identifyNumConsecutiveBrokenSprings(s)
@@ -97,37 +102,38 @@ func calcSpringLocCombos(s string, contiguousKeys []int) int {
 			j++
 			continue
 		}
-		for {
-			// catch knownBrokenSprings up with the current idx
-			if len(knownBrokenSprings) == 0 {
+		if len(knownBrokenSprings) > 0 {
+			for {
+				// catch knownBrokenSprings up with the current idx
+				if knownBrokenSprings[brokenSpringsIdx][1] < i {
+					brokenSpringsIdx++
+				}
 				break
 			}
-			if knownBrokenSprings[0][1] > j {
-				break
-			}
-			knownBrokenSprings = knownBrokenSprings[1:]
 		}
 
-		if len(knownBrokenSprings) > len(contiguousKeys)-checkKeysIdx-1 {
+		lenSpringsMinusIdx := len(knownBrokenSprings) - brokenSpringsIdx
+		lenKeysMinusIdx := len(contiguousKeys) - checkKeysIdx
+
+		if lenSpringsMinusIdx >= lenKeysMinusIdx && j < knownBrokenSprings[brokenSpringsIdx][0] {
 			i++
 			j++
 			continue
 		}
-		initialIdxs = append(initialIdxs, [2]int{i, j})
+
+		rAL := rangeAndLimit{low: i, high: j}
+		if brokenSpringsIdx < len(knownBrokenSprings) {
+			if knownBrokenSprings[brokenSpringsIdx][1] >= i {
+				upperLimitKnownBrokenSpring(&rAL, brokenSpringsIdx, knownBrokenSprings)
+			}
+		}
+		initialIdxs = append(initialIdxs, rAL)
 		j += 2
 		i = j
 
 		checkKeysIdx++
 	}
 
-	// TODO: replace this, or use it if the known / unknown values can use it
-	// var latestSpringIdx, latestSpringLen int
-	// if len(initialIdxs) > 0 {
-	// 	latestSpringIdx = initialIdxs[len(initialIdxs)-1][1]
-	// 	latestSpringLen = initialIdxs[len(initialIdxs)-1][1] -
-	// 		initialIdxs[len(initialIdxs)-1][0] + 1
-	// }
-	// combos := calculateCombos(len(contiguousKeys), latestSpringIdx, latestSpringLen, len(s), -1)
 	combos := calcRecursiveRangeTotal(
 		initialIdxs,
 		0,
@@ -135,6 +141,30 @@ func calcSpringLocCombos(s string, contiguousKeys []int) int {
 		len(s),
 	)
 	return combos
+}
+
+func upperLimitKnownBrokenSpring(
+	rAL *rangeAndLimit,
+	knownBrokenSpringsIdx int,
+	knownBrokenSprings [][2]int,
+) {
+	if len(knownBrokenSprings) == 0 {
+		return
+	}
+	if knownBrokenSprings[knownBrokenSpringsIdx][0]-2 < rAL.high+(rAL.high-rAL.low) {
+		// min of next known broken spring minus 2,
+		// or lowest known broken spring + # of contiguous springs
+
+		limit := knownBrokenSprings[knownBrokenSpringsIdx][0] + rAL.high - rAL.low
+		if knownBrokenSpringsIdx+1 <= len(knownBrokenSprings)-1 {
+			limit = min(
+				limit,
+				knownBrokenSprings[knownBrokenSpringsIdx+1][0]-2,
+			)
+		}
+		rAL.limit = &limit
+	}
+
 }
 
 func identifyNumConsecutiveBrokenSprings(s string) [][2]int {
@@ -183,54 +213,56 @@ func calculateCombos(numKeys, latestSpringsIdx, latestNumSprings, numSpaces, dif
 // }
 
 // TODO: test this and make it better
-func calcRecursiveRangeTotal(ranges [][2]int, curIdx, offset, maxNum int) int {
+func calcRecursiveRangeTotal(ranges []rangeAndLimit, curIdx, prevOffset, maxNum int) int {
+
+	var prevHigh, curOffset int
+
+	curMax := maxNum
+
+	if curIdx > 0 {
+		prevHigh = ranges[curIdx-1].high
+		for {
+			lowerLimit := ranges[curIdx].low - 2 + curOffset
+			if prevHigh+prevOffset > lowerLimit {
+				curOffset++
+				continue
+			}
+			break
+		}
+	}
+
 	var total int
-	lastStart := ranges[len(ranges)-1][0]
-	lastEnd := ranges[len(ranges)-1][1]
+	if ranges[curIdx].limit != nil {
+		curMax = *ranges[curIdx].limit + 1
+	}
 
 	if curIdx == len(ranges)-1 {
-		curStart := lastStart
-		curEnd := lastEnd
 		for {
-			lastStartOffset := curStart + offset
-			lenOfRange := curEnd - curStart + 1
+			lastStartOffset := ranges[curIdx].low + curOffset
+			lenOfRange := ranges[curIdx].high - ranges[curIdx].low + 1
 			compareTotal := lastStartOffset + lenOfRange
-			if compareTotal > maxNum {
+			if compareTotal > curMax {
 				break
 			}
 			total++
-			offset++
+			curOffset++
 		}
 		return total
 	}
-	// curStart := ranges[curIdx][0]
-	// curEnd := ranges[curIdx][1]
-	for {
-		subTotal := calcRecursiveRangeTotal(ranges, curIdx+1, offset, maxNum)
-		total += subTotal
-		if subTotal == 0 {
-			// this replaces the below
-			break
-		}
-		// lastStartOffset := lastStart + offset
-		// lastStartRange := lastEnd - lastStart + 1
-		// otherCompareTotal := lastStartOffset + lastStartRange
-		// if otherCompareTotal > maxNum {
-		// 	break
-		// }
-		offset++
-	}
-	return total
-}
 
-func calcCurrentRange(curRangeStart, curRangeEnd, limit int) int {
-	var total int
 	for {
-		currentLen := curRangeEnd - curRangeStart + 1
-		if curRangeStart+currentLen == limit {
+		subTotal := calcRecursiveRangeTotal(ranges, curIdx+1, curOffset, maxNum)
+		if subTotal == 0 {
 			break
 		}
-		total++
+		total += subTotal
+		curOffset++
+		if ranges[curIdx].limit != nil {
+			if ranges[curIdx].high+curOffset > *ranges[curIdx].limit {
+				break
+			}
+		}
+
 	}
 	return total
 }

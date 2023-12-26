@@ -54,21 +54,6 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		inKeys   []int
 		expected int
 	}{
-		// {
-		// 	inStr:    "???",
-		// 	inKeys:   []int{1, 1},
-		// 	expected: 1,
-		// },
-		// {
-		// 	inStr:    "?###????????",
-		// 	inKeys:   []int{4, 1, 1},
-		// 	expected: [][2]int{{0, 3}, {5, 5}, {7, 7}},
-		// },
-		// {
-		// 	inStr:    "?##?#????#",
-		// 	inKeys:   []int{3, 1, 1},
-		// 	expected: [][2]int{{0, 2}, {4, 4}, {9, 9}},
-		// },
 		{
 			inStr:    "??????",
 			inKeys:   []int{1, 1, 1},
@@ -78,6 +63,31 @@ func TestCalcSpringLocCombos(t *testing.T) {
 			inStr:    "???????????",
 			inKeys:   []int{1, 1, 2, 1},
 			expected: 35,
+		},
+		{
+			inStr:    "??????",
+			inKeys:   []int{2, 1},
+			expected: 6,
+		},
+		{
+			inStr:    "??#???#",
+			inKeys:   []int{4, 1},
+			expected: 2,
+		},
+		{
+			inStr:    "????#????#",
+			inKeys:   []int{4, 1},
+			expected: 4,
+		},
+		{
+			inStr:    "??##??#???",
+			inKeys:   []int{4, 1},
+			expected: 2,
+		},
+		{
+			inStr:    "?##????",
+			inKeys:   []int{3, 1},
+			expected: 5,
 		},
 	}
 
