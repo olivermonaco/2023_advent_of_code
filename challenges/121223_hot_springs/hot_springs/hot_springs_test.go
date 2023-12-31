@@ -52,6 +52,7 @@ func TestHotSprings_PartTwo(t *testing.T) {
 	}
 }
 
+// TODO: this passes, left off here, need to test the actual flow now
 func TestCalcSpringLocCombos(t *testing.T) {
 	tests := []struct {
 		inStr    string
@@ -61,7 +62,7 @@ func TestCalcSpringLocCombos(t *testing.T) {
 	}{
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
 							s: []rune("??????"),
@@ -74,7 +75,7 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
 							s: []rune("???????????"),
@@ -87,7 +88,7 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
 							s: []rune("??????"),
@@ -100,13 +101,10 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
-							s: []rune("??#?"),
-						},
-						{
-							s: []rune("?#"),
+							s: []rune("??#???#"),
 						},
 					},
 				},
@@ -116,29 +114,23 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
-							s: []rune("????#"),
-						},
-						{
-							s: []rune("?????#"),
+							s: []rune("????#?????#"),
 						},
 					},
 				},
 				consecutiveKeys: []int{4, 1},
 			},
-			expected: 5,
+			expected: 4,
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
-							s: []rune("??##"),
-						},
-						{
-							s: []rune("?#???"),
+							s: []rune("??##??#???"),
 						},
 					},
 				},
@@ -148,13 +140,10 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
-							s: []rune("?##"),
-						},
-						{
-							s: []rune("???"),
+							s: []rune("?##????"),
 						},
 					},
 				},
@@ -164,19 +153,10 @@ func TestCalcSpringLocCombos(t *testing.T) {
 		},
 		{
 			inRow: row{
-				stringGroups: stringGroups{
+				sGs: []stringGroup{
 					{
 						{
-							s: []rune("?#"),
-						},
-						{
-							s: []rune("?#?"),
-						},
-						{
-							s: []rune("#"),
-						},
-						{
-							s: []rune("#?#?#?"),
+							s: []rune("?#?#?#?#?#?#?#?"),
 						},
 					},
 				},
