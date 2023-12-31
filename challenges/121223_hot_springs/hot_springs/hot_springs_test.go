@@ -16,9 +16,13 @@ func TestHotSprings_PartOne(t *testing.T) {
 		expOutput     int
 	}{
 		{
-			inputFilename: "test_files/example_input.txt",
-			expOutput:     0,
+			inputFilename: "test_files/example_input2.txt",
+			expOutput:     21,
 		},
+		// {
+		// 	inputFilename: "test_files/example_input2.txt",
+		// 	expOutput:     21,
+		// },
 	}
 
 	for _, tt := range tests {
@@ -51,48 +55,140 @@ func TestHotSprings_PartTwo(t *testing.T) {
 func TestCalcSpringLocCombos(t *testing.T) {
 	tests := []struct {
 		inStr    string
+		inRow    row
 		inKeys   []int
 		expected int
 	}{
 		{
-			inStr:    "??????",
-			inKeys:   []int{1, 1, 1},
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("??????"),
+						},
+					},
+				},
+				consecutiveKeys: []int{1, 1, 1},
+			},
 			expected: 4,
 		},
 		{
-			inStr:    "???????????",
-			inKeys:   []int{1, 1, 2, 1},
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("???????????"),
+						},
+					},
+				},
+				consecutiveKeys: []int{1, 1, 2, 1},
+			},
 			expected: 35,
 		},
 		{
-			inStr:    "??????",
-			inKeys:   []int{2, 1},
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("??????"),
+						},
+					},
+				},
+				consecutiveKeys: []int{2, 1},
+			},
 			expected: 6,
 		},
 		{
-			inStr:    "??#???#",
-			inKeys:   []int{4, 1},
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("??#?"),
+						},
+						{
+							s: []rune("?#"),
+						},
+					},
+				},
+				consecutiveKeys: []int{4, 1},
+			},
 			expected: 2,
 		},
 		{
-			inStr:    "????#????#",
-			inKeys:   []int{4, 1},
-			expected: 4,
-		},
-		{
-			inStr:    "??##??#???",
-			inKeys:   []int{4, 1},
-			expected: 2,
-		},
-		{
-			inStr:    "?##????",
-			inKeys:   []int{3, 1},
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("????#"),
+						},
+						{
+							s: []rune("?????#"),
+						},
+					},
+				},
+				consecutiveKeys: []int{4, 1},
+			},
 			expected: 5,
+		},
+		{
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("??##"),
+						},
+						{
+							s: []rune("?#???"),
+						},
+					},
+				},
+				consecutiveKeys: []int{4, 1},
+			},
+			expected: 2,
+		},
+		{
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("?##"),
+						},
+						{
+							s: []rune("???"),
+						},
+					},
+				},
+				consecutiveKeys: []int{3, 1},
+			},
+			expected: 5,
+		},
+		{
+			inRow: row{
+				stringGroups: stringGroups{
+					{
+						{
+							s: []rune("?#"),
+						},
+						{
+							s: []rune("?#?"),
+						},
+						{
+							s: []rune("#"),
+						},
+						{
+							s: []rune("#?#?#?"),
+						},
+					},
+				},
+				consecutiveKeys: []int{1, 3, 1, 6},
+			},
+			expected: 1,
 		},
 	}
 
 	for _, tt := range tests {
-		actual := calcSpringLocCombos(tt.inStr, tt.inKeys)
+
+		actual := tt.inRow.calcSpringLocCombos()
 		assert.Equalf(t, tt.expected, actual, "actual (%v) and expected (%v) inequal")
 	}
 }
