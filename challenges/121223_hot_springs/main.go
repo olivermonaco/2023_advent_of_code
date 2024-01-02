@@ -19,7 +19,7 @@ func init() {
 
 // TODO: Left off here, run debugger on this and debug panics / len issues
 func main() {
-	ctx := context.Background()
+	ctx := log.Logger.WithContext(context.Background())
 	// Get the absolute path of the current file
 	filename := "puzzle_input.txt"
 	relFilepath := fmt.Sprintf("hot_springs/%s", filename)

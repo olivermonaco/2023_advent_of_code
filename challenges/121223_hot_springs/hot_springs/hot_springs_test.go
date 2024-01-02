@@ -176,7 +176,7 @@ func TestCalcSpringLocCombos(t *testing.T) {
 
 	for _, tt := range tests {
 
-		actual := tt.inRow.calcSpringLocCombos()
+		actual := tt.inRow.calcSpringLocCombos(context.Background())
 		assert.Equalf(t, tt.expected, actual, "actual (%v) and expected (%v) inequal")
 	}
 }

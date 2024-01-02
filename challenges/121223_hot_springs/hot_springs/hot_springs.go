@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -31,11 +32,17 @@ type row struct {
 
 func CalculatePartOne(ctx context.Context, input []string) int {
 	var total int
-	// rows := make([]row, 0, len(input))
-	for _, line := range input {
-		r := parseLine(line)
+	rows := make([]row, 0, len(input))
+	for i, line := range input {
+		l := log.Ctx(ctx).With().Int("line num", i).Str("line_val", line).Logger()
+		ctx = l.WithContext(ctx)
+		rows = append(rows, parseLine(ctx, line))
+		// l := log.Ctx(ctx).With().Logger()
+		l.Info().Msg("tests")
 
-		rowCombos := r.calcSpringLocCombos()
+		r := parseLine(ctx, line)
+
+		rowCombos := r.calcSpringLocCombos(ctx)
 		total += rowCombos
 	}
 	return total
@@ -45,7 +52,7 @@ func CalculatePartTwo(ctx context.Context, input []string) int {
 	return 0
 }
 
-func parseLine(line string) row {
+func parseLine(ctx context.Context, line string) row {
 	rowInfo := strings.Fields(line)
 	if len(rowInfo) != 2 {
 		panic(rowInfo)
@@ -59,9 +66,6 @@ func parseLine(line string) row {
 			panic(err)
 		}
 		consecNums = append(consecNums, n)
-	}
-	if rowInfo[0] == "?#.?.????.#????#??" {
-		fmt.Println("here")
 	}
 
 	strGroups := createStringGroups(rowInfo[0])
@@ -332,8 +336,8 @@ func catchKeysUp(span, curKeyIdx int, consecutiveKeys []int) int {
 	return curKeyIdx - 1
 }
 
-func (r row) calcSpringLocCombos() int {
-	total := r.sGs.calcRecursiveTotal()
+func (r row) calcSpringLocCombos(ctx context.Context) int {
+	total := r.sGs.calcRecursiveTotal(ctx)
 	return total
 }
 
@@ -436,16 +440,16 @@ func (r row) calcSpringLocCombos() int {
 // 	return total
 // }
 
-func (sGs stringGroups) calcRecursiveTotal() int {
+func (sGs stringGroups) calcRecursiveTotal(ctx context.Context) int {
 	var combosToMult []int
 	for _, sG := range sGs {
 		combosToMult = append(
 			combosToMult,
-			sG.calcRecursiveTotal(),
+			sG.calcRecursiveTotal(ctx),
 		)
 		combosToMult = append(
 			combosToMult,
-			sG.shiftAndReturnCombos()...,
+			sG.shiftAndReturnCombos(ctx)...,
 		)
 	}
 	total := kit.Mult(combosToMult)
@@ -453,20 +457,21 @@ func (sGs stringGroups) calcRecursiveTotal() int {
 	return total
 }
 
-func (sG stringGroup) calcRecursiveTotal() int {
+func (sG stringGroup) calcRecursiveTotal(ctx context.Context) int {
 	total := 1
 	for _, sepString := range sG {
-		total *= sepString.calcRecursiveTotal()
+		total *= sepString.calcRecursiveTotal(ctx)
 	}
 
 	return total
 }
 
-func (sepString separatedString) calcRecursiveTotal() int {
+func (sepString separatedString) calcRecursiveTotal(ctx context.Context) int {
 	totals := []int{1}
 	if len(sepString.knownBrokenSprings()) == 0 {
 		totals = append(totals,
 			calcRecursiveSepStringTotal(
+				ctx,
 				sepString.s, 0, 0, sepString.validConsecKeys,
 			),
 		)
@@ -475,10 +480,13 @@ func (sepString separatedString) calcRecursiveTotal() int {
 	return kit.Mult(totals)
 }
 
-func calcRecursiveSepStringTotal(runes []rune, spansIdx, offset int, spans []int) int {
+func calcRecursiveSepStringTotal(ctx context.Context, runes []rune, spansIdx, offset int, spans []int) int {
 	var total int
 	prevSpansSum := kit.Sum(spans[:spansIdx])
 	prevSpansSum += len(spans[:spansIdx]) // add the buffer characters
+	if spansIdx+1 > len(spans) {
+		fmt.Println("test")
+	}
 	curSpan := spans[spansIdx]
 
 	if spansIdx == len(spans)-1 {
@@ -491,7 +499,7 @@ func calcRecursiveSepStringTotal(runes []rune, spansIdx, offset int, spans []int
 	}
 	i := 0
 	for {
-		subtotal := calcRecursiveSepStringTotal(runes, spansIdx+1, offset+i, spans)
+		subtotal := calcRecursiveSepStringTotal(ctx, runes, spansIdx+1, offset+i, spans)
 		if subtotal == 0 {
 			break
 		}
@@ -558,7 +566,7 @@ func findRemainingLeftMostRunes(sepString separatedString) int {
 //	[("????", 1), ("##??", 4), ("??", 2)] -> (4*1*1) = 4 possibilities
 //
 // returns []int{6, 4}
-func (sG stringGroup) shiftAndReturnCombos() []int {
+func (sG stringGroup) shiftAndReturnCombos(ctx context.Context) []int {
 	var combos []int
 
 	idxsBrokenSprings := sG.knownBrokenSepStrings()
@@ -591,7 +599,7 @@ func (sG stringGroup) shiftAndReturnCombos() []int {
 				// remove up to j from current sepString
 				tempSG[curIdx].s = tempSG[curIdx].s[1:]
 
-				combos = append(combos, tempSG.calcRecursiveTotal())
+				combos = append(combos, tempSG.calcRecursiveTotal(ctx))
 			}
 		}
 	}
