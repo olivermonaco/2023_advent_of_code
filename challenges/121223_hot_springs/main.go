@@ -17,6 +17,7 @@ func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
+// TODO: Left off here, run debugger on this and debug panics / len issues
 func main() {
 	ctx := context.Background()
 	// Get the absolute path of the current file
