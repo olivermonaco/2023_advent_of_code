@@ -1,15 +1,16 @@
-    // https://adventofcode.com/2023/day/12
+// https://adventofcode.com/2023/day/12
 package main
 
 import (
 	"context"
 	"fmt"
 	"os"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/olivermonaco/2023_advent_of_code/kit"
 	"github.com/olivermonaco/2023_advent_of_code/challenges/121223_hot_springs/hot_springs"
+	"github.com/olivermonaco/2023_advent_of_code/kit"
 )
 
 func init() {
