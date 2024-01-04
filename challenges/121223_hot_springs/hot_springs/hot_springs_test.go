@@ -218,7 +218,7 @@ func TestFindRemainingLeftMostRunes(t *testing.T) {
 
 	for _, tt := range tests {
 
-		actual := findRemainingLeftMostRunes(tt.in)
+		actual := findLeftMostRemaining(tt.in)
 		assert.Equalf(t, tt.expected, actual, "actual (%v) and expected (%v) inequal")
 	}
 }

@@ -21,8 +21,8 @@ func init() {
 func main() {
 	ctx := log.Logger.WithContext(context.Background())
 	// Get the absolute path of the current file
-	filename := "puzzle_input.txt"
-	relFilepath := fmt.Sprintf("hot_springs/%s", filename)
+	filename := "example_input.txt"
+	relFilepath := fmt.Sprintf("hot_springs/test_files/%s", filename)
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
 
 	result := hot_springs.CalculatePartOne(ctx, data)
