@@ -187,41 +187,140 @@ func (sepString separatedString) addKeys2(
 	curKeyIdx, knownConsecBrokenIdx int,
 ) (stringGroup, int, int) {
 	var (
-		i, curBrokenSpringsIdx int
-		newStringGroup         stringGroup
+		i, j, curBrokenSpringsIdx int
+		newStringGroup            stringGroup
 	)
-	j := len(sepString.s) - 1
 
 	curBrokenSprings := findSpansOfCharacters(sepString.s, 0, brokenSpring)
 
 	for {
-		if len(knownConsecBroken)-knownConsecBrokenIdx >= len(keys)-curKeyIdx {
-			// get the right most span for greatest current broken idx
+		if i+keys[curKeyIdx] > len(sepString.s)-1 {
+			// i + current key is entirely greater than the remaining sepString.s len
+			if i < len(sepString.s)-1 && len(newStringGroup) > 0 {
+				// but there could be remaining ?s left to pass to the previous string group
+				newStringGroup = append(
+					newStringGroup,
+					separatedString{
+						s: sepString.s[i : len(sepString.s)-1],
+					},
+				)
+				newStringGroup = newStringGroup[len(newStringGroup)-1].passBack(
+					newStringGroup, len(newStringGroup)-2,
+				)
+			}
+			break
+		}
+		j = i + keys[curKeyIdx] - 1
+
+		if curBrokenSpringsIdx > len(curBrokenSprings)-1 {
+			j = len(sepString.s) - 1
+		}
+
+		if len(findSpansOfCharacters(sepString.s[i:i+keys[curKeyIdx]+1], 0, brokenSpring)) > 0 {
+			// there's a broken spring in the range or at the buffer idx
+			// and we need to find the left most span
 			_, j = sepString.leftMostSpan(
 				curBrokenSprings[curBrokenSpringsIdx][0],
 				curKeyIdx,
 				keys,
 			)
 		}
+		if len(knownConsecBroken)-knownConsecBrokenIdx >= len(keys)-curKeyIdx {
+			// there are more consecutive broken springs in a row than remaining keys
+			// catch up the keys idx with the broken springs idx
+			_, j = sepString.leftMostSpan(
+				curBrokenSprings[curBrokenSpringsIdx][0],
+				curKeyIdx,
+				keys,
+			)
+		}
+
 		newKeyIdx := catchKeysUp(j-i+1, curKeyIdx, keys)
 		newSepString := separatedString{
 			s:               sepString.s[i : j+1],
 			validConsecKeys: keys[curKeyIdx : newKeyIdx+1],
 		}
 
+		if brokenSpringSpan := newSepString.knownBrokenSprings(); len(brokenSpringSpan) > 0 {
+			curBrokenSpringsIdx++
+		}
+
 		newStringGroup = append(newStringGroup, newSepString)
-
-		curBrokenSpringsIdx++
-
-		curKeyIdx = newKeyIdx + 1
+		if j+2 >= len(sepString.s) {
+			if j+1 >= len(sepString.s) {
+				break
+			}
+			// trailing ? at the end
+			newStringGroup = append(
+				newStringGroup,
+				separatedString{
+					s: sepString.s[j+1 : len(sepString.s)],
+				},
+			)
+			newStringGroup = newStringGroup[len(newStringGroup)-1].passBack(
+				newStringGroup, len(newStringGroup)-2,
+			)
+			break
+		}
 		i = j + 2
 
-		if i >= len(sepString.s) {
+		curKeyIdx = newKeyIdx + 1
+		if curKeyIdx == len(keys) {
+			if i < len(sepString.s)-1 && len(newStringGroup) > 0 {
+				newStringGroup = append(
+					newStringGroup,
+					separatedString{
+						s: sepString.s[i : len(sepString.s)-1],
+					},
+				)
+				fmt.Println("whats")
+				testSG := newStringGroup[len(newStringGroup)-1].passBack(
+					newStringGroup, len(newStringGroup)-2,
+				)
+				newStringGroup = testSG
+			}
 			break
 		}
 	}
 	knownConsecBrokenIdx += len(curBrokenSprings)
 	return newStringGroup, curKeyIdx, knownConsecBrokenIdx
+}
+
+func (sepString separatedString) passBack(sG stringGroup, sGIdx int) stringGroup {
+	if sGIdx < 1 {
+		return sG
+	}
+	if sGIdx == 0 && sG[sGIdx].s[len(sG[sGIdx].s)-1] == brokenSpring {
+		// if it's already left aligned, and it's the first one
+		// there's no room to add to it
+		return sG
+	}
+
+	brokenSpringsSpans := sepString.knownBrokenSprings()
+
+	upperBound := len(sepString.s)
+	if len(brokenSpringsSpans) > 0 {
+		_, upperBound = sepString.rightMostSpan(0, 0, sepString.validConsecKeys)
+		upperBound++ // upper bound of a slice, but rightMostSpan is inclusive of the upper bound
+	}
+	temp := minReqRunes(sepString.validConsecKeys)
+	numPassBack := upperBound - temp
+	addPossible := make([]rune, 0, numPassBack)
+	for i := 0; i < numPassBack; i++ {
+		addPossible = append(addPossible, possibleSpring)
+		sepString.s = sepString.s[1:]
+	}
+	// add any extra possible springs
+	sG[sGIdx].s = append(sG[sGIdx].s, addPossible...)
+
+	sG[sGIdx+1] = sepString
+	if len(sepString.s) == 0 {
+		// cut off any trailing sepStrings with no runes left
+		sG = sG[:sGIdx+1]
+	}
+
+	sG = sG[sGIdx].passBack(sG, sGIdx-1)
+	return sG
 }
 
 // func (sepString separatedString) addKeys(keys []int, curKeyIdx int) (stringGroup, int) {
@@ -504,59 +603,12 @@ func calcRecursiveSepStringTotal(ctx context.Context, runes []rune, spansIdx, of
 	return total
 }
 
-// start at the right most brokenSpring end, and work backward fulfilling the keys
-
-// func findLeftMostRemaining(sepString separatedString) int {
-// 	brokenSpringSpans := findSpansOfCharacters(sepString.s, 0, brokenSpring)
-// 	if len(brokenSpringSpans) == 0 {
-// 		// order doesn't matter, math it
-// 		sumNums := kit.Sum(sepString.validConsecKeys)
-// 		lenNums := len(sepString.validConsecKeys) - 1
-// 		return len(sepString.s) - sumNums - lenNums
-// 	}
-// 	var i, j, remainingLeftMost int
-// 	curKeyIdx := len(sepString.validConsecKeys) - 1
-// 	brokenSpringSpansIdx := len(brokenSpringSpans) - 1
-// 	curRunes := sepString.s
-// 	for {
-// 		if brokenSpringSpansIdx < 0 || curKeyIdx < 0 {
-// 			sumNums := kit.Sum(sepString.validConsecKeys[:curKeyIdx+1])
-// 			lenNums := len(sepString.validConsecKeys[:curKeyIdx+1])
-// 			remainingLeftMost = (j - i + 1) - sumNums - lenNums
-// 			break
-// 		}
-// 		i = brokenSpringSpans[brokenSpringSpansIdx][0]
-// 		j = brokenSpringSpans[brokenSpringSpansIdx][1]
-// 		curSpan := j - i + 1
-// 		curKey := sepString.validConsecKeys[curKeyIdx]
-// 		if curSpan < curKey {
-// 			// increase j until the end of the slice, or it fulfills the curKey
-// 			for {
-// 				if j == len(curRunes) || j-i == sepString.validConsecKeys[curKeyIdx] {
-// 					break
-// 				}
-// 				j++
-// 			}
-// 			for {
-// 				curSpan = j - i
-// 				if i == 0 || curSpan == sepString.validConsecKeys[curKeyIdx] {
-// 					break
-// 				}
-// 				i--
-// 			}
-// 		}
-// 		j = max(i-2, -1) // 2 for buffer, and min -1 to account for no remainingLeftMost
-// 		i = 0            // will get increased if there's any remaining brokenSprings
-// 		curRunes = curRunes[:j+1]
-// 		curKeyIdx--
-// 		brokenSpringSpansIdx--
-// 	}
-// 	return remainingLeftMost
-// }
-
 // minReqRunes calculates the minimum number of runes required to hold a slice of keys
 func minReqRunes(keys []int) int {
-	return kit.Sum(keys) + len(keys) - 1
+	return max(
+		kit.Sum(keys)+len(keys)-1,
+		0,
+	)
 }
 
 func findLeftMostRemaining(sepString separatedString) int {
@@ -645,62 +697,43 @@ func (sepString separatedString) leftMostSpan(runeIdx, curKeyIdx int, keys []int
 	return i, j
 }
 
-// // findRightMostSpan gets the right most span possible for the current key idx considering the rune idx passed in
-// func (sepString separatedString) findRightMostSpan(runeIdx, curKeyIdx int, keys []int) (int, int) {
-// 	brokenSpringSpans := findSpansOfCharacters(sepString.s, runeIdx, brokenSpring)
-// 	if len(brokenSpringSpans) == 0 {
-// 		// order doesn't matter, send it
-// 		return runeIdx, len(sepString.s) - 1
-// 	}
-// 	var (
-// 		i, j int
-// 	)
-// 	brokenSpringSpansIdx := len(brokenSpringSpans) - 1
-// 	j = brokenSpringSpans[brokenSpringSpansIdx][1]
-// 	for {
-// 		if brokenSpringSpansIdx < 0 {
-// 			break
-// 		}
-// 		// at each iteration start i over at the beginning of the span
-// 		i = brokenSpringSpans[brokenSpringSpansIdx][0]
-// 		if j-i+1 < keys[curKeyIdx] {
-// 			// increase j until the end of the slice,
-// 			// or it fulfills the curKey
-// 			for {
-// 				if j == len(sepString.s) || j-i+1 == keys[curKeyIdx] {
-// 					// off by 1 if j was len(sepString.s), so decrement by 1
-// 					// there are two possible cases here, so avoid an extra if by using min
-// 					j = min(j, len(sepString.s)-1)
-// 					break
-// 				}
-// 				j++
-// 			}
+// leftMostSpan gets the right most span possible for the current key idx considering the rune idx passed in
+func (sepString separatedString) rightMostSpan(runeIdx, curKeyIdx int, keys []int) (int, int) {
+	brokenSpringSpans := findSpansOfCharacters(sepString.s, runeIdx, brokenSpring)
+	if len(brokenSpringSpans) == 0 || curKeyIdx == len(keys) {
+		// order doesn't matter, send it
+		return runeIdx, len(sepString.s) - 1
+	}
 
-// 			for {
-// 				// decrease i until it reaches the beginning of sepString.s,
-// 				// or until it fulfills the curKey
-// 				if i == -1 || j-i+1 == keys[curKeyIdx] {
-// 					break
-// 				}
-// 				i--
-// 			}
-// 		}
-// 		newKeyIdx := curKeyIdx
-// 		// catch the curKeyIdx up with the span
-// 		for {
-// 			if minReqRunes(keys[newKeyIdx:curKeyIdx+1]) > j-i+1 {
-// 				break
-// 			}
-// 			newKeyIdx--
-// 		}
-// 		curKeyIdx = newKeyIdx + 1
-// 		// account for the buffer
-// 		j = i - 1
-// 		brokenSpringSpansIdx--
-// 	}
+	if len(brokenSpringSpans) == 0 {
+		return 0, len(sepString.s) - 1
+	}
+	i := brokenSpringSpans[0][0]
+	j := brokenSpringSpans[0][1]
+	if j-i+1 < keys[curKeyIdx] {
+		// increase j until the end of the slice,
+		// or it fulfills the curKey
+		for {
+			if j == len(sepString.s) || j-i+1 == keys[curKeyIdx] {
+				// off by 1 if j was len(sepString.s), so decrement by 1
+				// there are two possible cases here, so avoid an extra if by using min
+				j = min(j, len(sepString.s)-1)
+				break
+			}
+			j++
+		}
+		for {
+			// decrease i until it reaches the beginning of sepString.s,
+			// or until it fulfills the curKey
+			if i == -1 || j-i+1 == keys[curKeyIdx] {
+				break
+			}
+			i--
+		}
+	}
 
-// 	return i, i + keys[curKeyIdx]
-// }
+	return i, j
+}
 
 // shiftAndReturnCombos shifts the sepStrings in the string group rune by rune,
 // to provide the number of possible combos per stringGroup possibility
@@ -719,8 +752,10 @@ func (sG stringGroup) shiftAndReturnCombos(ctx context.Context) []int {
 		tempSG := stringGroup(kit.Map(sG, func(sepStr separatedString) separatedString { return sepStr }))
 		if idxsBrokenSprings[i] < len(sG)-1 {
 			curIdx := idxsBrokenSprings[i]
-			if kit.Sum(tempSG[curIdx].validConsecKeys) == len(tempSG[curIdx].knownBrokenSprings()) {
+			brokenSpringSpan := tempSG[curIdx].knownBrokenSprings()
+			if kit.Sum(tempSG[curIdx].validConsecKeys) == brokenSpringSpan[0][1]-brokenSpringSpan[0][0]+1 {
 				// can't advance the broken springs, because all keys match the number of broken springs
+				// at this point, there should only
 				// eg. ??### 3
 				break
 			}
