@@ -2,14 +2,22 @@ package hot_springs
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+		With().Caller().Logger()
+}
+
 func TestHotSprings_PartOne(t *testing.T) {
-	ctx := context.Background()
+	ctx := log.Logger.WithContext(context.Background())
 
 	tests := []struct {
 		inputFilename string
@@ -19,14 +27,6 @@ func TestHotSprings_PartOne(t *testing.T) {
 			inputFilename: "test_files/example_input.txt",
 			expOutput:     21,
 		},
-		// {
-		// 	inputFilename: "test_files/example_input2.txt",
-		// 	expOutput:     10,
-		// },
-		// {
-		// 	inputFilename: "test_files/example_input3.txt",
-		// 	expOutput:     4,
-		// },
 	}
 
 	for _, tt := range tests {
@@ -176,7 +176,7 @@ func TestCalcSpringLocCombos(t *testing.T) {
 
 	for _, tt := range tests {
 
-		actual := tt.inRow.calcSpringLocCombos(context.Background())
+		actual := tt.inRow.sGs.calcRecursiveTotal(context.Background())
 		assert.Equalf(t, tt.expected, actual, "actual (%v) and expected (%v) inequal")
 	}
 }
