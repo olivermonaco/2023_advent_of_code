@@ -24,7 +24,7 @@ func main() {
 	relFilepath := fmt.Sprintf("maps/%s", filename)
 	data := kit.ReadFileConstructLines(ctx, relFilepath)
 
-	// result := maps.CalculatePartOne(ctx, data)
-	result := maps.CalculatePartTwo(ctx, data)
+	result := maps.CalculatePartOne(ctx, data)
+	// result := maps.CalculatePartTwo(ctx, data)
 	fmt.Printf("result is %d", result)
 }

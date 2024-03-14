@@ -226,7 +226,6 @@ type createOrderScoreInput struct {
 	minAllowedValue, maxAllowedNumValue int
 }
 
-// TODO: flesh out comment
 func createOrderScore(input createOrderScoreInput) (int, error) {
 
 	numPossibleValues := input.maxAllowedNumValue - input.minAllowedValue

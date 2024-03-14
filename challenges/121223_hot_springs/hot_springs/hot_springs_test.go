@@ -2,14 +2,22 @@ package hot_springs
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/olivermonaco/2023_advent_of_code/kit"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+		With().Caller().Logger()
+}
+
 func TestHotSprings_PartOne(t *testing.T) {
-	ctx := context.Background()
+	ctx := log.Logger.WithContext(context.Background())
 
 	tests := []struct {
 		inputFilename string
@@ -17,7 +25,7 @@ func TestHotSprings_PartOne(t *testing.T) {
 	}{
 		{
 			inputFilename: "test_files/example_input.txt",
-			expOutput:     0,
+			expOutput:     21,
 		},
 	}
 
@@ -48,51 +56,119 @@ func TestHotSprings_PartTwo(t *testing.T) {
 	}
 }
 
-func TestCalcSpringLocCombos(t *testing.T) {
+// TODO: either uncomment and fix or delete
+// func TestCalcNonBrokenTotals(t *testing.T) {
+// 	tests := []struct {
+// 		in  refBuffs
+// 		exp int
+// 	}{
+// 		{
+// 			// ????????????? 4,1,2,1
+// 			in: refBuffs{
+// 				refBuff{
+// 					separatedStringRef: separatedStringRef{
+// 						start: 0,
+// 						end:   3,
+// 					},
+// 				},
+// 				refBuff{
+// 					separatedStringRef: separatedStringRef{
+// 						start: 5,
+// 						end:   5,
+// 					},
+// 				},
+// 				refBuff{
+// 					separatedStringRef: separatedStringRef{
+// 						start: 7,
+// 						end:   8,
+// 					},
+// 				},
+// 				refBuff{
+// 					separatedStringRef: separatedStringRef{
+// 						start: 10,
+// 						end:   10,
+// 					},
+// 					rBuff: 3,
+// 				},
+// 			},
+// 			exp: 15,
+// 		},
+// 	}
+
+// 	for _, tt := range tests {
+// 		actual := tt.in.calcNonBrokenTotals()
+// 		// actualSum := kit.Map(actual, func(i int) int { return sumConsecNums(i, 0) })
+// 		actualSum := kit.Sum(actual)
+// 		assert.Equalf(t, tt.exp, actualSum,
+// 			"inequal expected:%d\nand actual:\n%d", tt.exp, kit.Sum(actual),
+// 		)
+// 	}
+// }
+
+func TestCalcTotals(t *testing.T) {
 	tests := []struct {
-		inStr    string
-		inKeys   []int
-		expected int
+		in  refBuffGroups
+		exp int
 	}{
 		{
-			inStr:    "??????",
-			inKeys:   []int{1, 1, 1},
-			expected: 4,
-		},
-		{
-			inStr:    "???????????",
-			inKeys:   []int{1, 1, 2, 1},
-			expected: 35,
-		},
-		{
-			inStr:    "??????",
-			inKeys:   []int{2, 1},
-			expected: 6,
-		},
-		{
-			inStr:    "??#???#",
-			inKeys:   []int{4, 1},
-			expected: 2,
-		},
-		{
-			inStr:    "????#????#",
-			inKeys:   []int{4, 1},
-			expected: 4,
-		},
-		{
-			inStr:    "??##??#???",
-			inKeys:   []int{4, 1},
-			expected: 2,
-		},
-		{
-			inStr:    "?##????",
-			inKeys:   []int{3, 1},
-			expected: 5,
+			// ????????##?????? 1,1,4,1,1
+			in: refBuffGroups{
+				refBuffGroup{
+					refBuffs: refBuffs{
+						refBuff{
+							separatedStringRef: separatedStringRef{
+								start: 0,
+								end:   0,
+							},
+						},
+						refBuff{
+							separatedStringRef: separatedStringRef{
+								start: 2,
+								end:   2,
+							},
+							rBuff: 2,
+						},
+					},
+				},
+				refBuffGroup{
+					refBuffs: refBuffs{
+						refBuff{
+							separatedStringRef: separatedStringRef{
+								start:       6,
+								end:         9,
+								brokenSpans: [][2]int{{8, 9}},
+							},
+						},
+					},
+					brokenSpans: [][2]int{{8, 9}},
+				},
+				refBuffGroup{
+					refBuffs: refBuffs{
+						refBuff{
+							separatedStringRef: separatedStringRef{
+								start: 11,
+								end:   11,
+							},
+						},
+						refBuff{
+							separatedStringRef: separatedStringRef{
+								start: 13,
+								end:   13,
+							},
+							rBuff: 2,
+						},
+					},
+				},
+			},
+			exp: 81,
 		},
 	}
 
 	for _, tt := range tests {
-		actual := calcSpringLocCombos(tt.inStr, tt.inKeys)
-		assert.Equalf(t, tt.expected, actual, "actual (%v) and expected (%v) inequal")
+		actual := tt.in.calcTotals()
+		actualSum := kit.Sum(actual)
+		assert.Equalf(t, tt.exp, actualSum,
+			"inequal expected:%d\nand actual:\n%d", tt.exp, kit.Sum(actual),
+		)
 	}
 }

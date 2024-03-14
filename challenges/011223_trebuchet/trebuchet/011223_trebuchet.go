@@ -39,7 +39,7 @@ func Calculate(ctx context.Context, input []string, partFunc func(string) int) i
 		log.Info().
 			Str("processed_str", s).
 			Int("int_from_runes", intResult).
-			Int("updated_result", result).Msg("")
+			Int("updated_result", result).Send()
 	}
 	return result
 }

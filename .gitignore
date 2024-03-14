@@ -1,12 +1,9 @@
-# MAC
 .idea/*
 .DS_Store
 
-# vs code
 .vscode/
-.VSCodeCounter/
 
-# general
 **log_*.txt
+**results_*.csv
+**combos_*.csv
 **/configs/*
-**/scratch/**
